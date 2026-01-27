@@ -228,6 +228,7 @@ results = orchestrator.execute_tests()
 
 - **[Architecture Guide](docs/ARCHITECTURE.md)**: Detailed system architecture
 - **[User Guide](docs/USER_GUIDE.md)**: Comprehensive usage instructions
+- **[Third-Party Validation Guide](docs/THIRD_PARTY_VALIDATION.md)**: Documentation structure for validation
 
 ## Design Patterns
 
