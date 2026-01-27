@@ -18,6 +18,7 @@ def main():
     print("=" * 60)
     print("TAAS Monolith - Testing as a Service")
     print("Coherent Facts within Monolithic Architecture")
+    print("With Third-Party Validation")
     print("=" * 60)
     print()
     
@@ -33,6 +34,28 @@ def main():
     print(format_report(status, "Initial System Status"))
     print()
     
+    # Demonstrate third-party validation
+    print("=" * 60)
+    print("THIRD-PARTY VALIDATION DEMONSTRATION")
+    print("=" * 60)
+    print()
+    
+    # Validate existing facts
+    print("Validating all existing facts...")
+    validation_results = orchestrator.validate_all_facts()
+    print(format_report(validation_results['summary'], "Validation Summary"))
+    print()
+    
+    # Show individual validation results
+    print("Individual Validation Results:")
+    print("-" * 60)
+    for result in validation_results['results'][:3]:  # Show first 3
+        print(f"\nFact ID: {result['fact_id']}")
+        print(f"  Status: {result['status']}")
+        print(f"  Confidence: {result['confidence']:.2%}")
+        print(f"  Findings: {', '.join(result['findings'])}")
+    print()
+    
     # Register a custom test
     def custom_fact_test():
         """Test that custom facts are properly registered"""
@@ -44,19 +67,41 @@ def main():
     print("✓ Registered custom test case")
     print()
     
-    # Add a new fact
+    # Add a new fact with validation
     new_fact = Fact(
         id="fact_demo",
         category="demonstration",
-        statement="This monolith demonstrates TAAS with coherent facts",
+        statement="This monolith demonstrates TAAS with coherent facts and third-party validation",
         verified=True,
         timestamp=datetime.now(),
-        tags=["demo", "taas", "monolith"]
+        tags=["demo", "taas", "monolith", "validation"]
     )
     
-    result = orchestrator.register_and_test_fact(new_fact)
+    print("Registering new fact with validation...")
+    result = orchestrator.register_and_validate_fact(new_fact)
     print(f"✓ New fact registered: {new_fact.id}")
     print(f"  Coherence maintained: {result['coherence_maintained']}")
+    print(f"  Validation status: {result['validation']['status']}")
+    print(f"  Validation confidence: {result['validation']['confidence']:.2%}")
+    print()
+    
+    # Try to register a low-quality fact (should fail)
+    low_quality_fact = Fact(
+        id="fact_bad",
+        category="test",
+        statement="Bad",
+        verified=False,
+        timestamp=datetime.now(),
+        tags=[]
+    )
+    
+    print("Attempting to register low-quality fact (should fail)...")
+    bad_result = orchestrator.register_and_validate_fact(low_quality_fact)
+    print(f"✗ Registration result: {bad_result['success']}")
+    if not bad_result['success']:
+        print(f"  Error: {bad_result['error']}")
+        print(f"  Validation status: {bad_result['validation']['status']}")
+        print(f"  Validation confidence: {bad_result['validation']['confidence']:.2%}")
     print()
     
     # Execute all tests
@@ -83,6 +128,7 @@ def main():
     
     print("=" * 60)
     print("TAAS Monolith demonstration completed successfully!")
+    print("Third-party validation ensures data quality!")
     print("=" * 60)
 
 
