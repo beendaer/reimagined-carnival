@@ -10,6 +10,7 @@ This monolith provides:
 
 - **Facts Registry**: Single source of truth for determined facts
 - **Test Service**: Testing as a Service (TAAS) implementation
+- **Validation Service**: Third-party validation for fact quality assurance
 - **Monolith Orchestrator**: Centralized coordination of all components
 - **Coherence Verification**: Ensures facts maintain integrity across the system
 
@@ -17,6 +18,7 @@ This monolith provides:
 
 ✅ **Coherent Fact Management**: Centralized registry maintaining single source of truth  
 ✅ **Testing as a Service**: Built-in test execution and verification  
+✅ **Third-Party Validation**: Investigate, check records, and evaluate coherence vs noise  
 ✅ **Industry Best Practices**: Following established patterns and procedures  
 ✅ **Comprehensive Testing**: Unit and integration tests included  
 ✅ **Type Safety**: Full type annotations for better development experience  
@@ -32,9 +34,10 @@ python src/main.py
 
 This demonstrates:
 1. Monolith initialization with default facts
-2. Fact registration and coherence verification
-3. Test execution and reporting
-4. System status monitoring
+2. Third-party validation of fact quality
+3. Fact registration with validation (coherent vs noise detection)
+4. Test execution and reporting
+5. System status monitoring
 
 ### Run Tests
 
@@ -60,7 +63,8 @@ reimagined-carnival/
 │   ├── models/
 │   │   └── fact.py               # Fact data model
 │   ├── services/
-│   │   └── test_service.py       # TAAS implementation
+│   │   ├── test_service.py       # TAAS implementation
+│   │   └── validation_service.py # Third-party validation
 │   ├── utils/
 │   │   └── helpers.py            # Utility functions
 │   └── main.py                   # Demo application
@@ -68,7 +72,8 @@ reimagined-carnival/
 │   ├── unit/                     # Unit tests
 │   │   ├── test_fact.py
 │   │   ├── test_facts_registry.py
-│   │   └── test_test_service.py
+│   │   ├── test_test_service.py
+│   │   └── test_validation_service.py
 │   └── integration/              # Integration tests
 │       └── test_monolith.py
 ├── config/
@@ -89,17 +94,17 @@ The TAAS monolith follows a layered architecture:
 │         (Coordination)              │
 └──────────────┬──────────────────────┘
                │
-       ┌───────┴────────┐
-       ▼                ▼
-┌─────────────┐  ┌─────────────┐
-│   Facts     │  │    Test     │
-│  Registry   │  │   Service   │
-│  (Singleton)│  │   (TAAS)    │
-└─────────────┘  └─────────────┘
-       │                │
-       └────────┬───────┘
-                ▼
-         ┌────────────┐
+       ┌───────┴────────┬───────────┐
+       ▼                ▼           ▼
+┌─────────────┐  ┌─────────────┐  ┌──────────────┐
+│   Facts     │  │    Test     │  │  Validation  │
+│  Registry   │  │   Service   │  │   Service    │
+│  (Singleton)│  │   (TAAS)    │  │ (3rd-party)  │
+└─────────────┘  └─────────────┘  └──────────────┘
+       │                │                 │
+       └────────────────┴─────────────────┘
+                        ▼
+                 ┌────────────┐
          │    Fact    │
          │   Model    │
          └────────────┘
@@ -111,6 +116,7 @@ The TAAS monolith follows a layered architecture:
 2. **Single Source of Truth**: Facts Registry maintains coherence
 3. **Service-Oriented**: Clear separation of concerns
 4. **Test-Driven**: Built-in testing capabilities (TAAS)
+5. **Quality Assurance**: Third-party validation ensures data integrity
 
 ## Usage Examples
 
@@ -159,6 +165,35 @@ summary = test_service.get_test_summary()
 print(f"Success rate: {summary['success_rate']}%")
 ```
 
+### Using Validation Service
+
+```python
+from src.services.validation_service import ValidationService
+from src.models.fact import Fact
+
+validation_service = ValidationService()
+
+# Investigate a fact
+investigation = validation_service.investigate_fact(my_fact)
+print(f"Statement length: {investigation['statement_length']}")
+print(f"Tag coherence: {investigation['tag_coherence']}")
+
+# Check records
+records = validation_service.check_records("fact_001")
+print(f"Record found: {records['found']}")
+
+# Evaluate coherence (detect noise vs coherent information)
+result = validation_service.evaluate_coherence(my_fact)
+print(f"Status: {result.status.value}")
+print(f"Confidence: {result.confidence}")
+print(f"Findings: {result.findings}")
+
+# Validate all facts
+results = validation_service.validate_all_facts()
+summary = validation_service.get_validation_summary()
+print(f"Coherence rate: {summary['coherence_rate']}%")
+```
+
 ### Using the Orchestrator
 
 ```python
@@ -167,10 +202,23 @@ from src.core.orchestrator import MonolithOrchestrator
 orchestrator = MonolithOrchestrator()
 orchestrator.initialize()
 
-# Get system status
+# Get system status (includes validation metrics)
 status = orchestrator.get_system_status()
 print(f"Total facts: {status['facts']['total_facts']}")
 print(f"Coherence verified: {status['coherence_verified']}")
+print(f"Validation summary: {status['validation']}")
+
+# Validate a specific fact
+validation_result = orchestrator.validate_fact("fact_001")
+print(f"Validation status: {validation_result['validation']['status']}")
+
+# Register with validation (rejects low-quality facts)
+new_fact = Fact(...)
+result = orchestrator.register_and_validate_fact(new_fact)
+if result['success']:
+    print("Fact passed validation and was registered")
+else:
+    print(f"Fact rejected: {result['error']}")
 
 # Execute all tests
 results = orchestrator.execute_tests()

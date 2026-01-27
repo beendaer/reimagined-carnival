@@ -46,22 +46,41 @@ The Test Service implements Testing as a Service (TAAS) functionality.
 - Verify system coherence
 - Generate test reports and metrics
 
-### 3. Monolith Orchestrator (`src/core/orchestrator.py`)
+### 3. Validation Service (`src/services/validation_service.py`)
+
+The Validation Service implements third-party validation for fact quality assurance.
+
+**Key Features:**
+- Fact investigation and analysis
+- Record checking and verification
+- Coherence vs noise evaluation
+- Multi-criteria validation rules
+- Confidence scoring (0.0 to 1.0)
+
+**Responsibilities:**
+- Investigate facts for quality indicators
+- Check records for integrity and validity
+- Evaluate if information is coherent or noise
+- Generate validation reports and summaries
+- Reject low-quality facts before registration
+
+### 4. Monolith Orchestrator (`src/core/orchestrator.py`)
 
 The Orchestrator provides a unified interface to the entire monolith.
 
 **Key Features:**
 - Facade pattern for simplified access
 - Initialization with default facts
-- Integrated testing and fact management
-- System status reporting
+- Integrated testing, validation, and fact management
+- System status reporting with validation metrics
 
 **Responsibilities:**
-- Coordinate between Facts Registry and Test Service
+- Coordinate between Facts Registry, Test Service, and Validation Service
 - Initialize system with foundational facts
 - Provide unified API for monolith operations
+- Enforce validation policies for fact registration
 
-### 4. Fact Model (`src/models/fact.py`)
+### 5. Fact Model (`src/models/fact.py`)
 
 The Fact model represents a determined fact with full validation.
 
@@ -91,34 +110,59 @@ MonolithOrchestrator (Facade)
     │       ↓
     │   Fact Models
     │
-    └─→ TestService (TAAS)
+    ├─→ TestService (TAAS)
+    │       ↓
+    │   Test Execution & Verification
+    │
+    └─→ ValidationService (Quality Assurance)
             ↓
-        Test Execution & Verification
+        Investigation → Record Check → Coherence Evaluation
 ```
+
+## Validation Workflow
+
+The validation service implements a comprehensive quality assurance workflow:
+
+1. **Investigation**: Analyze fact properties (statement length, tags, metadata)
+2. **Record Check**: Verify fact integrity and consistency with registry
+3. **Rule Evaluation**: Apply multiple validation rules (length, category, tags, timestamp)
+4. **Coherence Analysis**: Determine if fact is coherent information or noise
+5. **Confidence Scoring**: Calculate confidence score (0.0 to 1.0)
+6. **Status Assignment**: Classify as COHERENT (≥0.8), SUSPICIOUS (0.5-0.8), or NOISE (<0.5)
+
+**Validation Rules:**
+- Statement length: Must be between 5 and 1000 characters
+- Category validity: Must have a non-empty category
+- Tag coherence: Tags should align with category
+- Timestamp validity: Must have a valid timestamp
+- Tag quality: Checks for duplicates, empty tags, excessive tags
 
 ## Coherence Mechanism
 
 The monolith maintains coherence through:
 
 1. **Centralized Registry**: Single FactsRegistry instance (Singleton)
-2. **Validation**: Facts are validated on creation
-3. **Verification**: Test Service verifies coherence regularly
-4. **Orchestration**: Orchestrator coordinates all operations
+2. **Input Validation**: Facts are validated on creation
+3. **Quality Verification**: ValidationService evaluates coherence vs noise
+4. **Coherence Testing**: Test Service verifies coherence regularly
+5. **Orchestration**: Orchestrator coordinates all operations
 
 ## Design Patterns Used
 
 1. **Singleton Pattern**: FactsRegistry ensures single instance
 2. **Facade Pattern**: MonolithOrchestrator simplifies complex subsystems
 3. **Data Transfer Object**: Fact model for data encapsulation
-4. **Service Layer**: TestService provides business logic
+4. **Service Layer**: TestService and ValidationService provide business logic
+5. **Strategy Pattern**: Validation rules as pluggable strategies
 
 ## Testing Strategy
 
 The monolith includes comprehensive testing:
 
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: Complete system testing
+- **Unit Tests**: Individual component testing (Fact, Registry, TestService, ValidationService)
+- **Integration Tests**: Complete system testing with validation workflows
 - **TAAS Self-Testing**: Built-in test service validates itself
+- **Validation Testing**: 17 unit tests for validation service, 6 integration tests for validation workflows
 
 ## Scalability Considerations
 
@@ -136,7 +180,8 @@ While monolithic, the architecture supports scaling through:
 3. **Validation**: Input validation at all entry points
 4. **Error Handling**: Proper exception handling
 5. **Configuration**: Externalized configuration
-6. **Testing**: High test coverage
+6. **Testing**: High test coverage (44 tests total)
+7. **Quality Assurance**: Third-party validation for data integrity
 
 ## Future Enhancements
 
@@ -147,3 +192,5 @@ Potential improvements while maintaining monolith coherence:
 - Advanced query capabilities
 - Performance monitoring
 - REST API interface
+- Machine learning-based validation rules
+- Custom validation rule plugins
