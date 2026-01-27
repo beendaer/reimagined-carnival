@@ -188,17 +188,17 @@ class MonolithOrchestrator:
         """
         try:
             # First, validate the fact before registering
-            temp_validation = self.validation_service.evaluate_coherence(fact)
+            pre_validation = self.validation_service.evaluate_coherence(fact)
             
             # Only register if validation passes coherence threshold
-            if temp_validation.confidence < 0.5:
+            if pre_validation.confidence < 0.5:
                 return {
                     'success': False,
                     'error': 'Fact failed validation - appears to be noise',
                     'validation': {
-                        'status': temp_validation.status.value,
-                        'confidence': temp_validation.confidence,
-                        'findings': temp_validation.findings
+                        'status': pre_validation.status.value,
+                        'confidence': pre_validation.confidence,
+                        'findings': pre_validation.findings
                     }
                 }
             
@@ -208,17 +208,14 @@ class MonolithOrchestrator:
             # Verify coherence
             coherence_ok = self.test_service.verify_fact_coherence()
             
-            # Re-validate after registration
-            final_validation = self.validation_service.evaluate_coherence(fact)
-            
             return {
                 'success': True,
                 'fact_id': fact.id,
                 'coherence_maintained': coherence_ok,
                 'validation': {
-                    'status': final_validation.status.value,
-                    'confidence': final_validation.confidence,
-                    'findings': final_validation.findings
+                    'status': pre_validation.status.value,
+                    'confidence': pre_validation.confidence,
+                    'findings': pre_validation.findings
                 }
             }
         except Exception as e:

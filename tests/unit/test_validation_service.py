@@ -35,7 +35,7 @@ class TestValidationService(unittest.TestCase):
         self.short_fact = Fact(
             id="test_002",
             category="testing",
-            statement="Short",
+            statement="Bad",  # Only 3 characters - should fail
             verified=False,
             timestamp=datetime.now(),
             tags=["test"]

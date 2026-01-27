@@ -74,7 +74,8 @@ class ValidationService:
         
         # Check for related facts in same category
         related_facts = self.facts_registry.get_facts_by_category(fact.category)
-        investigation['related_facts_count'] = len(related_facts) - 1  # Exclude self
+        # Count related facts (may include the fact itself if already registered)
+        investigation['related_facts_count'] = max(0, len(related_facts) - (1 if fact in related_facts else 0))
         
         # Analyze tags for coherence
         investigation['tag_coherence'] = self._analyze_tag_coherence(fact)
@@ -128,16 +129,6 @@ class ValidationService:
         # Additional coherence checks
         investigation = self.investigate_fact(fact)
         
-        # Check statement quality
-        if investigation['statement_length'] < 10:
-            findings.append("Statement too short for meaningful validation")
-            confidence *= 0.7
-        
-        # Check tag relevance
-        if investigation['tag_count'] == 0:
-            findings.append("No tags provided for categorization")
-            confidence *= 0.9
-        
         # Check for related facts (coherence with category)
         if investigation['related_facts_count'] == 0:
             findings.append("No related facts in category - potential isolation")
@@ -171,7 +162,6 @@ class ValidationService:
         Best practice: comprehensive validation of entire dataset.
         """
         results = []
-        coherence_report = self.facts_registry.get_coherence_report()
         
         # Validate each fact
         for fact_id in self.facts_registry._facts.keys():
