@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from models.fact import Fact
+from utils.helpers import serialize_datetime
 
 
 class FactsRegistry:
@@ -31,6 +32,11 @@ class FactsRegistry:
             return
         self._facts: Dict[str, Fact] = {}
         self._initialized = True
+    
+    @classmethod
+    def reset_for_testing(cls) -> None:
+        """Reset the singleton instance for testing purposes"""
+        cls._instance = None
     
     def register_fact(self, fact: Fact) -> None:
         """Register a new fact in the registry"""
@@ -64,7 +70,7 @@ class FactsRegistry:
         """Export all facts to a JSON file"""
         data = {fid: fact.to_dict() for fid, fact in self._facts.items()}
         with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, default=serialize_datetime)
     
     def import_facts(self, filepath: Path) -> None:
         """Import facts from a JSON file"""

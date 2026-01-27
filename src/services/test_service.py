@@ -114,7 +114,7 @@ class TestService:
             'passed': passed,
             'failed': failed,
             'skipped': skipped,
-            'success_rate': (passed / len(self.test_results)) * 100 if self.test_results else 0.0
+            'success_rate': (passed / len(self.test_results)) * 100
         }
     
     def verify_fact_coherence(self) -> bool:

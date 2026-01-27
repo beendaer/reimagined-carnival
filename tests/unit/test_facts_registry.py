@@ -22,7 +22,7 @@ class TestFactsRegistry(unittest.TestCase):
     def setUp(self):
         """Reset registry before each test"""
         # Create a fresh registry instance
-        FactsRegistry._instance = None
+        FactsRegistry.reset_for_testing()
         self.registry = FactsRegistry()
     
     def test_singleton_pattern(self):

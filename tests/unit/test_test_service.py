@@ -21,7 +21,7 @@ class TestTestService(unittest.TestCase):
     def setUp(self):
         """Set up test service before each test"""
         # Reset registry
-        FactsRegistry._instance = None
+        FactsRegistry.reset_for_testing()
         self.registry = FactsRegistry()
         self.test_service = TestService(self.registry)
     

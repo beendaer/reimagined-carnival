@@ -20,7 +20,7 @@ class TestMonolithIntegration(unittest.TestCase):
     def setUp(self):
         """Set up orchestrator before each test"""
         from core.facts_registry import FactsRegistry
-        FactsRegistry._instance = None
+        FactsRegistry.reset_for_testing()
         self.orchestrator = MonolithOrchestrator()
     
     def test_initialize_monolith(self):
