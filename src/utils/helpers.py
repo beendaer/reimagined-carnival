@@ -2,7 +2,7 @@
 Utility functions for the TAAS monolith
 """
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, Optional
 from datetime import datetime
 from pathlib import Path
 
@@ -53,7 +53,7 @@ def import_from_json(filepath: str) -> Any:
         return json.load(f)
 
 
-def validate_third_party_framework(framework_config: Dict[str, Any]) -> Dict[str, Any]:
+def validate_third_party_framework(framework_config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Validate third-party validation framework configuration.
     
@@ -100,7 +100,7 @@ def validate_third_party_framework(framework_config: Dict[str, Any]) -> Dict[str
     }
 
 
-def validate_documentation_structure(docs_path: str) -> Dict[str, Any]:
+def validate_documentation_structure(docs_path: Optional[str]) -> Dict[str, Any]:
     """
     Validate documentation structure for completeness and consistency.
     
