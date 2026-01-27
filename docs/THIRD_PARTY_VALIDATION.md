@@ -395,7 +395,7 @@ timestamp = datetime.now()
 timestamp = None
 ```
 
-### 5. Related Facts Analysis
+### Additional Analysis: Related Facts
 
 **Check:** Facts should have related facts in the same category.
 
@@ -403,7 +403,7 @@ timestamp = None
 
 **Confidence Impact:** 0.95× if no related facts
 
-**Note:** This is an informational check, not a hard requirement.
+**Note:** This is an informational check, not a validation rule. It's applied during the coherence evaluation phase.
 
 ## Validation Outcomes
 
@@ -471,8 +471,10 @@ validation_service = ValidationService()
 results = validation_service.validate_all_facts()
 
 # Review results
+from src.services.validation_service import ValidationStatus
+
 for result in results:
-    if result.status.value != "coherent":
+    if result.status != ValidationStatus.COHERENT:
         print(f"Fact {result.fact_id}: {result.status.value}")
         print(f"  Confidence: {result.confidence:.2f}")
         print(f"  Issues: {', '.join(result.findings)}")
@@ -587,7 +589,7 @@ fact = Fact(
     verified=True,
     timestamp=datetime.now(),
     tags=["ml", "neural_networks", "training", "research"],
-    metadata={"source": "research paper", "confidence": "high"}
+    metadata={"source": "research paper", "reliability": "high"}
 )
 
 # Register with validation
