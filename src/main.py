@@ -11,6 +11,85 @@ from core.orchestrator import MonolithOrchestrator
 from models.fact import Fact
 from utils.helpers import format_report
 from datetime import datetime
+from typing import Optional, Dict, Any
+
+# Initialize validation service once (singleton pattern)
+_validation_service = None
+
+
+def _get_validation_service():
+    """Get or create the validation service instance (lazy singleton)"""
+    global _validation_service
+    if _validation_service is None:
+        from services.validation_service import ValidationService
+        _validation_service = ValidationService()
+    return _validation_service
+
+
+def validate_input(input_text: str, context: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Validate input text for coherence and noise detection.
+    
+    This function wraps the validation service to provide a simple API
+    for validating text input.
+    
+    Args:
+        input_text: The text to validate
+        context: Optional context for the validation
+        
+    Returns:
+        Dictionary with validation results including:
+        - coherence_score: float between 0.0 and 1.0
+        - noise_detected: bool indicating if noise was detected
+        - validation_passed: bool indicating if validation passed
+        - details: dict with additional validation information
+    """
+    # Handle empty or invalid input upfront
+    if not input_text or not input_text.strip():
+        return {
+            "coherence_score": 0.0,
+            "noise_detected": True,
+            "validation_passed": False,
+            "details": {
+                "status": "noise",
+                "findings": ["Empty or whitespace-only input"],
+                "metadata": {}
+            }
+        }
+    
+    # Create a temporary fact for validation
+    # Note: This couples to the Fact model, but it's necessary because
+    # the validation service is designed to work with Fact objects
+    temp_fact = Fact(
+        id="temp_validation",
+        category=context or "general",
+        statement=input_text,
+        verified=False,
+        timestamp=datetime.now(),
+        tags=[]
+    )
+    
+    # Get validation service instance
+    validation_service = _get_validation_service()
+    
+    # Evaluate coherence
+    result = validation_service.evaluate_coherence(temp_fact)
+    
+    # Map to expected API format
+    coherence_score = result.confidence
+    noise_detected = result.status.value == "noise"
+    validation_passed = result.status.value == "coherent"
+    
+    return {
+        "coherence_score": coherence_score,
+        "noise_detected": noise_detected,
+        "validation_passed": validation_passed,
+        "details": {
+            "status": result.status.value,
+            "findings": result.findings,
+            "metadata": result.metadata
+        }
+    }
 
 
 def main():
