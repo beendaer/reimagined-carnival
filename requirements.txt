@@ -1,2 +1,2 @@
-# No external dependencies required
-# This project uses only Python standard library
+fastapi
+uvicorn[standard]
