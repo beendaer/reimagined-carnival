@@ -49,6 +49,16 @@ class TestValidationService(unittest.TestCase):
             timestamp=datetime.now(),
             tags=[]
         )
+
+        self.external_claim_fact = Fact(
+            id="test_004",
+            category="deployment",
+            statement="Service is live on external platform",
+            verified=False,
+            timestamp=datetime.now(),
+            tags=["deployment"],
+            metadata={"external_claim": True}
+        )
     
     def tearDown(self):
         """Clean up after tests"""
@@ -181,6 +191,14 @@ class TestValidationService(unittest.TestCase):
         """Test that default validation rules are initialized"""
         self.assertGreater(len(self.validation_service.validation_rules), 0)
         self.assertTrue(all(callable(rule) for rule in self.validation_service.validation_rules))
+
+    def test_external_claim_requires_evidence(self):
+        """External claims should require verifiable evidence"""
+        self.registry.register_fact(self.external_claim_fact)
+        result = self.validation_service.evaluate_coherence(self.external_claim_fact)
+
+        self.assertIn("External claims require verifiable evidence", result.findings[0])
+        self.assertLess(result.confidence, 1.0)
     
     def test_check_statement_length_rule(self):
         """Test statement length validation rule"""
