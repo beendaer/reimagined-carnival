@@ -1,19 +1,13 @@
-FROM python:3.11-slim
-
+FROM python:3.12-slim as builder
 WORKDIR /app
-
-# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install FastAPI and uvicorn
-RUN pip install --no-cache-dir fastapi uvicorn[standard]
-
-# Copy application code
-COPY . .
-
-# Expose port
+FROM python:3.12-slim
+WORKDIR /app
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY src/ src/
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
-
-# Run FastAPI server
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-8000}"]

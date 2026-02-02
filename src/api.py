@@ -6,13 +6,8 @@ Exposes HTTP endpoint for coherence and noise validation.
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-import sys
-from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-from main import validate_input
+from .main import validate_input
 
 app = FastAPI(title="TAAS Validation Service", version="1.0.0")
 
