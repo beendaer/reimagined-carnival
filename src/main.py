@@ -13,6 +13,18 @@ from utils.helpers import format_report
 from datetime import datetime
 from typing import Optional, Dict, Any
 
+# Initialize validation service once (singleton pattern)
+_validation_service = None
+
+
+def _get_validation_service():
+    """Get or create the validation service instance (lazy singleton)"""
+    global _validation_service
+    if _validation_service is None:
+        from services.validation_service import ValidationService
+        _validation_service = ValidationService()
+    return _validation_service
+
 
 def validate_input(input_text: str, context: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -46,6 +58,8 @@ def validate_input(input_text: str, context: Optional[str] = None) -> Dict[str, 
         }
     
     # Create a temporary fact for validation
+    # Note: This couples to the Fact model, but it's necessary because
+    # the validation service is designed to work with Fact objects
     temp_fact = Fact(
         id="temp_validation",
         category=context or "general",
@@ -55,9 +69,8 @@ def validate_input(input_text: str, context: Optional[str] = None) -> Dict[str, 
         tags=[]
     )
     
-    # Initialize validation service
-    from services.validation_service import ValidationService
-    validation_service = ValidationService()
+    # Get validation service instance
+    validation_service = _get_validation_service()
     
     # Evaluate coherence
     result = validation_service.evaluate_coherence(temp_fact)
