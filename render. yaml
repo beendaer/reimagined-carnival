@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: taas-validation
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
