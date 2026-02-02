@@ -3,9 +3,11 @@ FastAPI wrapper for TAAS validation service.
 Exposes HTTP endpoint for coherence and noise validation.
 """
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+import os
 from typing import Optional
+
+from fastapi import Depends, FastAPI, Header, HTTPException
+from pydantic import BaseModel
 
 from .main import validate_input
 
@@ -26,34 +28,31 @@ class ValidationResponse(BaseModel):
     details: dict
 
 
+def verify_api_key(api_key: Optional[str] = Header(default=None, alias="X-API-KEY")):
+    """Dependency to verify API key from header."""
+    expected_key = os.getenv("API_KEY")
+    if not expected_key:
+        raise HTTPException(status_code=500, detail="API key not configured")
+    if api_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    return True
+
+
 @app.get("/")
 async def root():
     """Health check endpoint."""
     return {"status": "operational", "service": "TAAS Validation"}
 
 
-@app.post("/validate", response_model=ValidationResponse)
-async def validate(request: ValidationRequest):
-    """
-    Validate input text for coherence and noise.
-    
-    Returns coherence score, noise detection, and validation status.
-    """
+@app.post("/validate", dependencies=[Depends(verify_api_key)])
+def validate_text(request: dict):
     try:
-        result = validate_input(
-            input_text=request.input_text,
-            context=request.context
-        )
-        
-        return ValidationResponse(
-            coherence_score=result["coherence_score"],
-            noise_detected=result["noise_detected"],
-            validation_passed=result["validation_passed"],
-            details=result.get("details", {})
-        )
-    
+        text = request.get("text", "")
+        context = request.get("context")
+        result = validate_input(text, context=context)
+        return {"validation": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/health")
