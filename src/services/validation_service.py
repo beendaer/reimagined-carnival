@@ -55,6 +55,7 @@ class ValidationService:
             self._check_category_validity,
             self._check_tag_coherence,
             self._check_timestamp_validity,
+            self._check_external_claim_evidence,
         ]
     
     def investigate_fact(self, fact: Fact) -> Dict[str, Any]:
@@ -287,3 +288,32 @@ class ValidationService:
             score *= 0.5
         
         return score
+
+    def _check_external_claim_evidence(self, fact: Fact) -> Dict[str, Any]:
+        """
+        Ensure facts that imply external presence (e.g., deployments) include verifiable evidence.
+        This guards against unverified external claims and supports Truth-as-a-Service guarantees.
+        """
+        category = fact.category.lower()
+        metadata = fact.metadata or {}
+        has_external_claim = (
+            "deploy" in category
+            or "external" in category
+            or metadata.get("external_claim") is True
+        )
+
+        if not has_external_claim:
+            return {'passed': True, 'message': '', 'confidence_impact': 1.0}
+
+        evidence = metadata.get("evidence") or []
+        if isinstance(evidence, str):
+            evidence = [evidence]
+
+        if not evidence:
+            return {
+                'passed': False,
+                'message': "External claims require verifiable evidence",
+                'confidence_impact': 0.7
+            }
+
+        return {'passed': True, 'message': '', 'confidence_impact': 1.0}
