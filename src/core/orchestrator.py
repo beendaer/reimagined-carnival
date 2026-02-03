@@ -67,7 +67,9 @@ class MonolithOrchestrator:
         ]
         
         for fact in default_facts:
-            self.facts_registry.register_fact(fact)
+            # Avoid duplicate registrations if defaults already exist
+            if self.facts_registry.get_fact(fact.id) is None:
+                self.facts_registry.register_fact(fact)
         
         # Register default tests
         def test_registry_coherence():
