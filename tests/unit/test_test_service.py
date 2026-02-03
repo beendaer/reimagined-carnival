@@ -105,6 +105,11 @@ class TestTestService(unittest.TestCase):
         
         coherence_ok = self.test_service.verify_fact_coherence()
         self.assertTrue(coherence_ok)
+    
+    def test_verify_fact_coherence_with_empty_registry(self):
+        """Test fact coherence verification with empty registry"""
+        coherence_ok = self.test_service.verify_fact_coherence()
+        self.assertTrue(coherence_ok)
 
 
 if __name__ == '__main__':
