@@ -17,7 +17,7 @@ app = FastAPI(
 
 # API Key authentication
 API_KEY_NAME = "x-api-key"
-api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
 def verify_api_key(api_key: str = Security(api_key_header)) -> str:
@@ -39,6 +39,12 @@ def verify_api_key(api_key: str = Security(api_key_header)) -> str:
         raise HTTPException(
             status_code=500,
             detail="API key not configured on server"
+        )
+
+    if not api_key:
+        raise HTTPException(
+            status_code=403,
+            detail="API key header missing"
         )
     
     if api_key != expected_key:
