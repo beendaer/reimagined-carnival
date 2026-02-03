@@ -6,7 +6,7 @@ import os
 from typing import Dict, Any
 from fastapi import FastAPI, HTTPException, Security, Depends
 from fastapi.security import APIKeyHeader
-from main import validate_input
+from src.main import validate_input
 
 # Initialize FastAPI app
 app = FastAPI(
