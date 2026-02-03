@@ -2,7 +2,7 @@
 Facts Registry - Single source of truth for determined facts
 Implements Singleton pattern to maintain coherence across the monolith
 """
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from models.fact import Fact
 
 
@@ -133,7 +133,7 @@ class FactsRegistry:
             return True
         return False
     
-    def get_coherence_report(self) -> Dict[str, any]:
+    def get_coherence_report(self) -> Dict[str, Any]:
         """
         Generate a coherence report for all facts
         

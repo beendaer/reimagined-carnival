@@ -133,7 +133,7 @@ def demo_monolith():
     print(f"  - Coherent: {validation_results['summary']['coherent']}")
     print(f"  - Suspicious: {validation_results['summary']['suspicious']}")
     print(f"  - Noise: {validation_results['summary']['noise']}")
-    print(f"  - Average Confidence: {validation_results['summary']['average_confidence']:.2%}")
+    print(f"  - Average Confidence: {validation_results['summary']['average_confidence'] * 100:.2f}%")
     print(f"  - Coherence Rate: {validation_results['summary']['coherence_rate']:.1f}%")
     
     # Register a new high-quality fact with validation
@@ -151,7 +151,7 @@ def demo_monolith():
     if result['success']:
         print(f"✓ Fact registered successfully: {good_fact.id}")
         print(f"  - Validation Status: {result['validation']['status']}")
-        print(f"  - Confidence: {result['validation']['confidence']:.2%}")
+        print(f"  - Confidence: {result['validation']['confidence'] * 100:.2f}%")
         print(f"  - Coherence Maintained: {result['coherence_maintained']}")
     else:
         print(f"✗ Fact rejected: {result.get('error')}")
@@ -173,7 +173,7 @@ def demo_monolith():
     else:
         print(f"✗ Fact rejected: {result.get('error')}")
         print(f"  - Validation Status: {result['validation']['status']}")
-        print(f"  - Confidence: {result['validation']['confidence']:.2%}")
+        print(f"  - Confidence: {result['validation']['confidence'] * 100:.2f}%")
         print(f"  - Findings: {', '.join(result['validation']['findings'])}")
         print("\n  This demonstrates noise detection and quality control!")
     
@@ -196,7 +196,7 @@ def demo_monolith():
     print(f"  - Total Validated: {final_status['validation']['total_validated']}")
     print(f"  - Coherent: {final_status['validation']['coherent']}")
     print(f"  - Coherence Rate: {final_status['validation']['coherence_rate']:.1f}%")
-    print(f"  - Average Confidence: {final_status['validation']['average_confidence']:.2%}")
+    print(f"  - Average Confidence: {final_status['validation']['average_confidence'] * 100:.2f}%")
     print(f"\nTest Summary:")
     print(f"  - Total Tests: {final_status['tests']['total']}")
     print(f"  - Success Rate: {final_status['tests']['success_rate']:.1f}%")
