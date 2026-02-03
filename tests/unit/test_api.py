@@ -46,7 +46,8 @@ class TestAPIEndpoints(unittest.TestCase):
             "/validate",
             json={"input_text": "This is a test", "context": "testing"}
         )
-        self.assertEqual(response.status_code, 403)  # Forbidden due to missing header
+        # APIKeyHeader with auto_error=True returns 401 when header is missing
+        self.assertEqual(response.status_code, 401)
     
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_validate_endpoint_with_invalid_api_key(self):
