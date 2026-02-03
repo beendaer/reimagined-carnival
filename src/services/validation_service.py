@@ -5,8 +5,8 @@ Investigates, checks records, and evaluates coherence vs noise
 from enum import Enum
 from typing import Dict, List, Any, Callable, Optional
 from datetime import datetime
-from models.fact import Fact
-from core.facts_registry import FactsRegistry
+from src.models.fact import Fact
+from src.core.facts_registry import FactsRegistry
 
 
 class ValidationStatus(Enum):

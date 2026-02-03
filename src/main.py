@@ -4,9 +4,9 @@ Demonstrates TAAS Monolith functionality with coherent facts
 """
 from typing import Dict, Any, Optional
 from datetime import datetime
-from core.orchestrator import MonolithOrchestrator
-from models.fact import Fact
-from services.validation_service import ValidationStatus
+from src.core.orchestrator import MonolithOrchestrator
+from src.models.fact import Fact
+from src.services.validation_service import ValidationStatus
 
 
 def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:

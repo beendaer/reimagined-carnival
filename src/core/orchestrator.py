@@ -4,10 +4,10 @@ Provides unified access to all monolith components
 """
 from typing import Dict, Any, List
 from datetime import datetime
-from models.fact import Fact
-from core.facts_registry import FactsRegistry
-from services.test_service import TestService
-from services.validation_service import ValidationService, ValidationStatus
+from src.models.fact import Fact
+from src.core.facts_registry import FactsRegistry
+from src.services.test_service import TestService
+from src.services.validation_service import ValidationService, ValidationStatus
 
 
 class MonolithOrchestrator:

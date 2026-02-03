@@ -3,7 +3,7 @@ Facts Registry - Single source of truth for determined facts
 Implements Singleton pattern to maintain coherence across the monolith
 """
 from typing import Dict, List, Optional, Any
-from models.fact import Fact
+from src.models.fact import Fact
 
 
 class FactsRegistry:

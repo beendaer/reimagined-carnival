@@ -5,7 +5,7 @@ Provides test registration, execution, and reporting capabilities
 from enum import Enum
 from typing import Dict, List, Callable, Optional, Any
 from datetime import datetime
-from core.facts_registry import FactsRegistry
+from src.core.facts_registry import FactsRegistry
 
 
 class TestStatus(Enum):
