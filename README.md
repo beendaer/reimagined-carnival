@@ -361,7 +361,7 @@ This project implements several industry-standard patterns:
 ## Requirements
 
 - Python 3.7+
-- No external dependencies (uses only Python standard library)
+- External dependencies listed in requirements.txt (FastAPI, Uvicorn, Requests, httpx for API tests)
 
 ## Testing
 
