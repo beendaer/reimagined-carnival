@@ -12,9 +12,10 @@ from services.validation_service import ValidationStatus
 def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     """
     Validate input text for coherence and quality
+    Enhanced with deception detection
     
     This function provides API-level validation for user input,
-    detecting noise vs coherent information
+    detecting noise vs coherent information and identifying deception patterns
     
     Args:
         text: The text to validate
@@ -25,6 +26,9 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
         - coherence_score: Score from 0.0 to 1.0
         - noise_detected: Whether input is considered noise
         - validation_passed: Whether validation passed
+        - deception_detected: Whether deception was detected (NEW)
+        - deception_type: Type of deception if detected (NEW)
+        - deception_probability: Probability of deception (NEW)
         - details: Detailed validation information
     """
     # Calculate coherence score based on text characteristics
@@ -52,6 +56,14 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     if context:
         coherence_score = min(1.0, coherence_score + 0.05)
     
+    # Add deception check
+    from services.deception_detector import detect_user_correction
+    deception = detect_user_correction(text, context)
+    
+    # Adjust coherence score if deception detected
+    if deception.detected:
+        coherence_score *= (1.0 - deception.probability * 0.3)
+    
     # Determine if noise detected
     noise_detected = coherence_score < 0.5
     validation_passed = coherence_score >= 0.5
@@ -60,6 +72,7 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     details = {
         'status': 'coherent' if validation_passed else 'noise',
         'findings': [],
+        'matched_correction_phrases': deception.matched_phrases,  # NEW
         'metadata': {
             'text_length': text_length,
             'word_count': word_count,
@@ -71,11 +84,16 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
         details['findings'].append('Text is too short')
     if noise_detected:
         details['findings'].append('Input detected as noise')
+    if deception.detected:
+        details['findings'].append(f'Deception pattern detected: {deception.deception_type}')
     
     return {
         'coherence_score': round(coherence_score, 3),
         'noise_detected': noise_detected,
         'validation_passed': validation_passed,
+        'deception_detected': deception.detected,  # NEW
+        'deception_type': deception.deception_type if deception.detected else None,  # NEW
+        'deception_probability': round(deception.probability, 3),  # NEW
         'details': details
     }
 
