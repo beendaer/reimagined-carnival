@@ -157,6 +157,7 @@ class ValidationService:
     def evaluate_coherence(self, fact: Fact) -> ValidationResult:
         """
         Evaluate coherence of a fact to distinguish from noise
+        Enhanced with deception detection
         
         Args:
             fact: The fact to evaluate
@@ -179,6 +180,25 @@ class ValidationService:
             findings.append("External claims require verifiable evidence")
             confidence -= 0.1
         
+        # Add deception detection
+        from services.deception_detector import (
+            detect_user_correction,
+            detect_unverified_claims
+        )
+        
+        # Detect user corrections in the statement
+        deception_result = detect_user_correction(fact.statement)
+        
+        if deception_result.detected:
+            # Reduce confidence based on deception probability
+            confidence *= (1.0 - deception_result.probability * 0.5)
+            findings.append(f"Deception detected: {deception_result.deception_type}")
+        
+        # Check for unverified claims
+        claim_result = detect_unverified_claims(fact.statement)
+        if claim_result.detected:
+            findings.append("Unverified claims require external validation")
+        
         # Ensure confidence stays in bounds
         confidence = max(0.0, min(1.0, confidence))
         
@@ -197,7 +217,10 @@ class ValidationService:
             status=status,
             confidence=confidence,
             findings=findings,
-            metadata={'rules_checked': len(self.validation_rules)}
+            metadata={
+                'rules_checked': len(self.validation_rules),
+                'deception_checked': True
+            }
         )
         
         # Store the result
