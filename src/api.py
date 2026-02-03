@@ -2,8 +2,8 @@
 FastAPI application for TAAS validation service
 Provides authenticated API endpoints for text validation
 """
+import hmac
 import os
-from typing import Dict, Any
 from fastapi import FastAPI, HTTPException, Security, Depends
 from fastapi.security import APIKeyHeader
 from src.main import validate_input
@@ -41,13 +41,13 @@ def verify_api_key(api_key: str = Security(api_key_header)) -> str:
             detail="API key not configured on server"
         )
 
-    if not api_key:
+    if not api_key or not isinstance(api_key, str):
         raise HTTPException(
-            status_code=403,
-            detail="API key header missing"
+            status_code=401,
+            detail="Invalid or missing API key"
         )
     
-    if api_key != expected_key:
+    if not hmac.compare_digest(api_key, expected_key):
         raise HTTPException(
             status_code=401,
             detail="Invalid or missing API key"

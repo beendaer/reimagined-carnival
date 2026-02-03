@@ -118,6 +118,33 @@ class TestFactsRegistry(unittest.TestCase):
         self.assertEqual(len(verified), 1)
         self.assertEqual(verified[0].id, "ver_001")
     
+    def test_get_facts_by_tag(self):
+        """Test retrieving facts by tag"""
+        fact1 = Fact(
+            id="tag_001",
+            category="test",
+            statement="Tagged fact",
+            verified=True,
+            timestamp=datetime.now(),
+            tags=["security", "audit"]
+        )
+        fact2 = Fact(
+            id="tag_002",
+            category="test",
+            statement="Other fact",
+            verified=True,
+            timestamp=datetime.now(),
+            tags=["audit"]
+        )
+        
+        self.registry.register_fact(fact1)
+        self.registry.register_fact(fact2)
+        
+        tagged = self.registry.get_facts_by_tag("security")
+        
+        self.assertEqual(len(tagged), 1)
+        self.assertEqual(tagged[0].id, "tag_001")
+    
     def test_coherence_report(self):
         """Test coherence report generation"""
         fact = Fact(
