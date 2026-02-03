@@ -278,6 +278,70 @@ print(f"Deception probability: {result['deception_probability']}")
 print(f"Matched phrases: {result['details']['matched_correction_phrases']}")
 ```
 
+## Testing the Protected Validation Endpoint
+
+The `/validate` endpoint requires API key authentication via the `x-api-key` header.
+
+### Example Request
+```bash
+curl -X POST https://taas-validation.onrender.com/validate \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{
+    "input_text": "This is a coherent factual statement.",
+    "context": "TAAS verification"
+  }'
+```
+
+### Expected Response
+```json
+{
+  "validation": {
+    "coherence_score": 0.85,
+    "noise_detected": false,
+    "validation_passed": true,
+    "deception_detected": false,
+    "deception_type": null,
+    "deception_probability": 0.0,
+    "details": {
+      "status": "coherent",
+      "findings": [],
+      "matched_correction_phrases": [],
+      "metadata": {
+        "text_length": 39,
+        "word_count": 6,
+        "context": "TAAS verification"
+      }
+    }
+  }
+}
+```
+
+### Authentication Error
+Without valid `x-api-key` header, requests return:
+```json
+{"detail": "Invalid or missing API key"}
+```
+
+### Local Testing
+To run the API locally:
+```bash
+# Set API key environment variable
+export API_KEY=your_secure_api_key
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the API server
+uvicorn src.api:app --reload --port 8000
+
+# Test the endpoint
+curl -X POST http://localhost:8000/validate \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your_secure_api_key" \
+  -d '{"input_text": "This is a test.", "context": "local"}'
+```
+
 ## Documentation
 
 - **[Architecture Guide](docs/ARCHITECTURE.md)**: Detailed system architecture
