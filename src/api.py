@@ -24,6 +24,29 @@ API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
+def validate_api_key_value(api_key: Optional[str]) -> None:
+    """Validate the API key value for protected endpoints."""
+    expected_key = os.getenv("API_KEY")
+
+    if not expected_key:
+        raise HTTPException(
+            status_code=500,
+            detail="API key not configured on server"
+        )
+
+    if not api_key or not isinstance(api_key, str):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key"
+        )
+
+    if not hmac.compare_digest(api_key, expected_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key"
+        )
+
+
 def verify_api_key(api_key: str = Security(api_key_header)) -> str:
     """
     Verify API key from request header
@@ -37,26 +60,7 @@ def verify_api_key(api_key: str = Security(api_key_header)) -> str:
     Raises:
         HTTPException: If API key is invalid or missing
     """
-    expected_key = os.getenv("API_KEY")
-    
-    if not expected_key:
-        raise HTTPException(
-            status_code=500,
-            detail="API key not configured on server"
-        )
-
-    if not api_key or not isinstance(api_key, str):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or missing API key"
-        )
-    
-    if not hmac.compare_digest(api_key, expected_key):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or missing API key"
-        )
-    
+    validate_api_key_value(api_key)
     return api_key
 
 
@@ -86,7 +90,7 @@ def render_gui(
         result_json = escape(json.dumps(result, indent=2))
         result_section = f"""
         <section class="results">
-            <h2>Actions Results</h2>
+            <h2>Action Results</h2>
             <ul>{actions_list}</ul>
             <h3>Validation Output</h3>
             <pre>{result_json}</pre>
@@ -128,6 +132,9 @@ def render_gui(
             <label for="context">Context (optional)</label>
             <input id="context" name="context" value="{escaped_context}"
               placeholder="e.g. testing, product, compliance" />
+            <label for="api_key">API Key</label>
+            <input id="api_key" name="api_key" type="password"
+              placeholder="Enter API key for validation" />
             <button type="submit">Run Validation</button>
           </form>
           {result_section}
@@ -163,14 +170,24 @@ def gui_form():
 @app.post("/gui", response_class=HTMLResponse)
 def gui_submit(
     input_text: str = Form(...),
-    context: str = Form("")
+    context: str = Form(""),
+    api_key: str = Form("")
 ):
     """Handle GUI submissions and render validation results."""
     try:
+        validate_api_key_value(api_key)
         result = validate_input(input_text, context=context or None)
         return HTMLResponse(render_gui(input_text, context, result))
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unable to validate the text feed due to invalid input or missing credentials. "
+                "Please review the text and API key, then try again."
+            )
+        ) from e
 
 
 @app.post("/validate", dependencies=[Depends(verify_api_key)])

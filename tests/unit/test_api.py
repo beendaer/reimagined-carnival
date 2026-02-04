@@ -51,11 +51,39 @@ class TestAPIEndpoints(unittest.TestCase):
         """Test GUI form submission shows results"""
         response = self.client.post(
             "/gui",
-            data={"input_text": "This is a coherent test statement", "context": "testing"}
+            data={
+                "input_text": "This is a coherent test statement",
+                "context": "testing",
+                "api_key": "test_api_key_12345"
+            }
+        )
+        self.assertEqual(response.status_code, 500)
+        self.assertIn("API key not configured on server", response.text)
+
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_gui_post_endpoint_with_api_key(self):
+        """Test GUI form submission with API key shows results"""
+        response = self.client.post(
+            "/gui",
+            data={
+                "input_text": "This is a coherent test statement",
+                "context": "testing",
+                "api_key": "test_api_key_12345"
+            }
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Actions Results", response.text)
+        self.assertIn("Action Results", response.text)
         self.assertIn("Validation Output", response.text)
+
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_gui_post_endpoint_without_api_key(self):
+        """Test GUI form submission without API key is rejected"""
+        response = self.client.post(
+            "/gui",
+            data={"input_text": "This is a coherent test statement", "context": "testing"}
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("Invalid or missing API key", response.text)
     
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_validate_endpoint_without_api_key(self):
