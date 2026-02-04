@@ -19,6 +19,16 @@ This will:
 3. Display system status and coherence reports
 4. Demonstrate fact management capabilities
 
+### Running the Text Feed Testing GUI
+
+Start the API server, then open the GUI to submit text and see action results:
+
+```bash
+uvicorn src.api:app --reload
+```
+
+Open [http://localhost:8000/gui](http://localhost:8000/gui) in your browser. The GUI lets you submit text feed content, supply the API key, and view the validation output plus action results.
+
 ## Core Concepts
 
 ### Facts

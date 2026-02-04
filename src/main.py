@@ -57,7 +57,7 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
         coherence_score = min(1.0, coherence_score + 0.05)
     
     # Add deception check
-    from services.deception_detector import detect_user_correction
+    from src.services.deception_detector import detect_user_correction
     deception = detect_user_correction(text, context)
     
     # Adjust coherence score if deception detected

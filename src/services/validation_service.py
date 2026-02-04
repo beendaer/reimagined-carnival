@@ -181,7 +181,7 @@ class ValidationService:
             confidence -= 0.1
         
         # Add deception detection
-        from services.deception_detector import (
+        from src.services.deception_detector import (
             detect_user_correction,
             detect_unverified_claims
         )
