@@ -472,7 +472,7 @@ All tests passing with 0% failure rate.
 - **0.9-1.0:** Very high confidence - strong indicators present
 - **0.7-0.89:** High confidence - clear patterns detected
 - **0.5-0.69:** Medium confidence - suggestive indicators
-- **0.3-0.49:** Low confidence - weak signals
+- **0.3-0.49:** Low confidence - limited signals
 - **0.0-0.29:** Very low confidence - minimal or no indicators
 
 ### Handling False Positives

@@ -371,7 +371,7 @@ category = "   "  # Whitespace only
 category = "authentication"
 tags = ["auth", "security", "login"]  # Overlaps with category
 
-# ⚠️ Weak coherence
+# ⚠️ Limited coherence
 category = "authentication"
 tags = ["database", "storage"]  # No overlap - slightly suspicious
 ```
@@ -419,7 +419,7 @@ timestamp = None
 - **Confidence:** 0.5 to < 0.8
 - **Meaning:** May have quality issues, needs review
 - **Action:** Manual review recommended before use
-- **Example:** Fact with weak tag coherence or slightly long statement
+- **Example:** Fact with limited tag coherence or slightly long statement
 
 #### NOISE
 - **Confidence:** < 0.5
