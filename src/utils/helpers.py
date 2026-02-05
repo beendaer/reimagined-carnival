@@ -7,6 +7,25 @@ from datetime import datetime
 import os
 import re
 
+# Regex patterns used for extracting file hints from conversational text.
+# FILENAME_PATTERN details:
+#   (?!https?://)           -> avoid matching full URLs
+#   (?=[A-Za-z0-9_\-./]*[A-Za-z_]) -> require at least one alphabetic character to avoid pure numbers
+#   [A-Za-z0-9_\-./]+       -> allow common path characters before the extension
+#   \.[A-Za-z][A-Za-z0-9]+  -> extension must start with a letter
+FILENAME_PATTERN = re.compile(
+    r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
+)
+# INLINE_FILE_COMMENT_PATTERN supports:
+#   - Python style: # file: path
+#   - C/JS style: // file: path
+#   - HTML style: <!-- file: path -->
+#   - Assembly style: ; file: path
+#   - C block style: /* file: path */ or /** file: path */
+INLINE_FILE_COMMENT_PATTERN = re.compile(
+    r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+)"
+)
+
 
 def validate_third_party_framework(config: Any) -> Dict[str, Any]:
     """
@@ -237,14 +256,6 @@ def extract_key_code_segments(history: Any) -> str:
         fragments = _collect_text_fragments(history)
         text = "\n".join(fragments)
 
-    # Match probable filenames (with extensions) while avoiding URLs and pure numbers.
-    # - Negative lookahead skips http/https prefixes
-    # - Lookahead enforces at least one alphabetic character (avoids "1.5")
-    # - Allows path separators, underscores, dashes, and dots before the extension
-    # - Extension must start with a letter and contain alphanumerics
-    file_pattern = re.compile(
-        r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
-    )
     code_blocks = list(
         re.finditer(r"```(?P<label>[^\n`]*)\n(?P<code>[\s\S]*?)```", text)
     )
@@ -263,25 +274,21 @@ def extract_key_code_segments(history: Any) -> str:
 
         # If the fence label looks like a filename, use it. Otherwise treat as language.
         if label:
-            if file_pattern.fullmatch(label):
+            if FILENAME_PATTERN.fullmatch(label):
                 file_name = label
             else:
                 language = label
 
         # Try to find explicit file markers inside the code block.
         if not file_name:
-            inline_match = re.search(
-                # Support common comment styles: Python (#), C/JS (//), HTML (<!--),
-                # assembly (;), and C-style block comments (/* or /**).
-                r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+)", code
-            )
+            inline_match = INLINE_FILE_COMMENT_PATTERN.search(code)
             if inline_match:
                 file_name = inline_match.group(1).strip()
 
         # Look backwards in the history for the nearest filename mention.
         if not file_name:
             prefix = text[: match.start()]
-            filenames = file_pattern.findall(prefix)
+            filenames = FILENAME_PATTERN.findall(prefix)
             if filenames:
                 file_name = filenames[-1]
 
