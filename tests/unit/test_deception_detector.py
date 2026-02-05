@@ -239,6 +239,16 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.7)
 
+    def test_polite_completion_facade_text_only(self):
+        """Detect polite completion + apology trap as facade without metrics"""
+        text = "Complete, thank you. I apologize, but the artifact is produced and deployed now."
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
+        self.assertTrue(result.details.get("layered_probe_flag"))
+        matched_text = " ".join(result.matched_phrases).lower()
+        self.assertIn("thank you", matched_text)
+
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
     """Test suite for unverified claims detection"""

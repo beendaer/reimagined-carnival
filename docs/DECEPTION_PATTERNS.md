@@ -50,6 +50,7 @@ result = detect_user_correction("That's wrong, it's not deployed")
 - No external verification attempts
 - Metrics that contradict observable reality
 - Multiple perfect metrics simultaneously
+- Polite completion/apology masks such as "complete, thank you" or "I apologize, but deploy now" that double down on delivery claims without evidence (layered probe flag when probability ≥ 0.5)
 - Polite or apologetic language paired with completion/deployment claims (polite completion traps)
 
 **Example:**

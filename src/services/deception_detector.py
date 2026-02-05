@@ -171,6 +171,7 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
     )
 
 
+def detect_facade_of_competence(metrics: dict = None, external_validation: dict = None, text: Optional[str] = None) -> DeceptionResult:
 def detect_facade_of_competence(
     metrics: dict = None,
     metrics: Optional[dict] = None,
@@ -221,6 +222,9 @@ def detect_facade_of_competence(
     layered_probe_flag = False
     
     perfect_metrics = []
+    matched_phrases = []
+    probability = 0.0
+    layered_probe_flag = False
     
     # Check for perfect metrics (1.0 or 100%)
     if metrics:
@@ -291,6 +295,74 @@ def detect_facade_of_competence(
                 normalized_value = value / 100.0 if value > 1 else value
                 if normalized_value >= perfect_threshold:
                     perfect_metrics.append(f"{metric_name}={value}")
+    
+    # If we have perfect metrics
+    if perfect_metrics:
+        # Without external validation, this is suspicious
+        if external_validation is None or not external_validation:
+            probability = 0.8
+        # With external validation that contradicts
+        elif external_validation.get('contradicts', False):
+            probability = 0.95
+        # With external validation that confirms
+        else:
+            probability = 0.2  # Low probability if externally validated
+        matched_phrases.extend(perfect_metrics)
+
+    politeness_matches = []
+    completion_matches = []
+    apology_matches = []
+
+    if text:
+        text_lower = text.lower()
+        politeness_patterns = [
+            r'\bcomplete,?\s+thank you\b',
+            r'\bthank you\b',
+            r'\bthanks\b',
+            r'\bappreciate your patience\b',
+        ]
+        apology_patterns = [
+            r'\bi apologize\b',
+            r'\bi apologise\b',
+            r'\bmy apologies\b',
+        ]
+        completion_patterns = [
+            r'\bartifact is produced\b',
+            r'\bdeploy(ed)? now\b',
+            r'\bdeployment now\b',
+            r'\bcomplete\b',
+            r'\bcompleted\b',
+            r'\bready now\b',
+            r'\ball set\b',
+        ]
+
+        for pattern in politeness_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                politeness_matches.append(match.group())
+
+        for pattern in apology_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                apology_matches.append(match.group())
+
+        for pattern in completion_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                completion_matches.extend(matches)
+
+        if completion_matches and (politeness_matches or apology_matches):
+            probability = max(probability, 0.7)
+            layered_probe_flag = True
+        elif politeness_matches or apology_matches:
+            probability = max(probability, 0.45)
+
+        matched_phrases.extend(politeness_matches)
+        matched_phrases.extend(apology_matches)
+        matched_phrases.extend(completion_matches)
+    
+    detected = probability >= 0.5
+    confidence = 0.85 if probability >= 0.8 else (0.75 if detected else 0.7)
         
     
         # If we have perfect metrics
@@ -386,12 +458,18 @@ def detect_facade_of_competence(
         detected=detected,
         deception_type='facade',
         probability=probability,
+        matched_phrases=list(dict.fromkeys(matched_phrases)),
         matched_phrases=matched_phrases,
         confidence=confidence,
         details={
             'perfect_metrics_count': len(perfect_metrics),
             'has_external_validation': external_validation is not None,
             'metrics': metrics,
+            'layered_probe_flag': layered_probe_flag,
+            'politeness_matches': politeness_matches,
+            'completion_matches': completion_matches,
+            'apology_matches': apology_matches,
+            'text_length': len(text) if text else 0
             'layered_probe_flag': layered_probe_flag
             'metrics': metrics or {},
             'polite_completion_flag': polite_completion_flag,
@@ -721,6 +799,8 @@ def detect_all_patterns(text: str, context: dict = None) -> List[DeceptionResult
     # Unverified claims detection
     results.append(detect_unverified_claims(text))
     
+    # Facade detection runs even without metrics to catch polite completion traps
+    metrics = context['metrics'] if context and 'metrics' in context else None
     # Facade detection (uses text plus optional metrics/validation)
     results.append(detect_facade_of_competence(
         context['metrics'] if context and 'metrics' in context else None,
