@@ -224,6 +224,12 @@ class TestUnverifiedClaimsDetection(unittest.TestCase):
         text = "Successfully deployed to production"
         result = detect_unverified_claims(text)
         self.assertTrue(result.detected)
+
+    def test_deployment_claim_detail_flag(self):
+        """Test that deployment claim detail flag is set"""
+        text = "The service is now live and operational"
+        result = detect_unverified_claims(text)
+        self.assertTrue(result.details.get("deployment_claim_present"))
     
     def test_completion_assertion(self):
         """Test detection of completion assertions"""
