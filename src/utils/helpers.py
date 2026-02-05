@@ -237,6 +237,7 @@ def extract_key_code_segments(history: Any) -> str:
         fragments = _collect_text_fragments(history)
         text = "\n".join(fragments)
 
+    # Match probable filenames (with extensions) while avoiding URLs and pure numbers.
     file_pattern = re.compile(
         r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
     )
@@ -248,6 +249,7 @@ def extract_key_code_segments(history: Any) -> str:
         return ""
 
     segments = []
+    snippet_counter = 1
     for match in code_blocks:
         label = match.group("label").strip()
         code = match.group("code").strip("\n")
@@ -265,7 +267,7 @@ def extract_key_code_segments(history: Any) -> str:
         # Try to find explicit file markers inside the code block.
         if not file_name:
             inline_match = re.search(
-                r"(?im)^(?:#|//|<!--|;|/\*+)\s*file\s*:\s*([^\s]+)", code
+                r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+)", code
             )
             if inline_match:
                 file_name = inline_match.group(1).strip()
@@ -278,7 +280,8 @@ def extract_key_code_segments(history: Any) -> str:
                 file_name = filenames[-1]
 
         if not file_name:
-            file_name = f"snippet-{len(segments) + 1}"
+            file_name = f"snippet-{snippet_counter}"
+            snippet_counter += 1
 
         segments.append(
             {"file": file_name, "language": language, "code": code}
