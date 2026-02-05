@@ -213,6 +213,29 @@ class TestUnverifiedClaimsDetection(unittest.TestCase):
         # Should detect both URLs
         self.assertGreaterEqual(len(result.matched_phrases), 2)
     
+    def test_content_uri_detection(self):
+        """Test detection of content URI file references"""
+        text = "File stored at content://com.alphainventor.filemanager.fileprovider/root/storage/emulated/0/Download/document(1)(1).pdf"
+        result = detect_unverified_claims(text)
+        self.assertTrue(result.detected)
+        self.assertIn("content://com.alphainventor.filemanager.fileprovider/root/storage/emulated/0/Download/document(1)(1).pdf", result.matched_phrases)
+
+    def test_backend_js_reference(self):
+        """Test detection of backend.js references"""
+        text = "Review backend.js for the integration details"
+        result = detect_unverified_claims(text)
+        self.assertTrue(result.detected)
+        matched_text = " ".join(result.matched_phrases).lower()
+        self.assertIn("backend.js", matched_text)
+
+    def test_mydrive_handle_detection(self):
+        """Test detection of @mydrive references"""
+        text = "Shared via @mydrive with additional metadata"
+        result = detect_unverified_claims(text)
+        self.assertTrue(result.detected)
+        matched_text = " ".join(result.matched_phrases).lower()
+        self.assertIn("@mydrive", matched_text)
+
     def test_deployment_live_claim(self):
         """Test detection of 'live' deployment claim"""
         text = "The service is now live and operational"
