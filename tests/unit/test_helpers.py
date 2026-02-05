@@ -214,12 +214,12 @@ class TestOtherHelpers(unittest.TestCase):
                     "summary": "and extract key code segments from conversation history"
                 }
             },
-            {"tagged_text": {"summary": "Focus on bbfb_engine.py for extraction."}},
+            {"tagged_text": {"summary": "Focus on example_engine.py for extraction."}},
             {"tagged_text": {"summary": "```python\nprint('hello')\n```"}}
         ]
 
         result = extract_key_code_segments(history)
-        self.assertIn("### bbfb_engine.py", result)
+        self.assertIn("### example_engine.py", result)
         self.assertIn("```python", result)
         self.assertIn("print('hello')", result)
 
