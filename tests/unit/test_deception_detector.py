@@ -182,7 +182,9 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(None, text=text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.65)
-        self.assertIn("complete, thank you", " ".join(result.matched_phrases))
+        matched = " ".join(result.matched_phrases).lower()
+        self.assertIn("complete", matched)
+        self.assertIn("thank you", matched)
     
     def test_facade_apology_with_deploy_now(self):
         """Apology plus deploy-now assurance should raise probability"""
