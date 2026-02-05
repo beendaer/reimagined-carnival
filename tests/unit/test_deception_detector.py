@@ -222,6 +222,22 @@ class TestFacadeDetection(unittest.TestCase):
         """Test with None metrics"""
         result = detect_facade_of_competence(None)
         self.assertFalse(result.detected)
+    
+    def test_facade_polite_completion_text(self):
+        """Text-only facade detection for polite completion claim"""
+        text = "Complete now, thank you for your patience."
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
+        # Flag signals layered probe/escalation once probability crosses FACADE_LAYERED_THRESHOLD
+        self.assertTrue(result.details.get("layered_probe_flag"))
+    
+    def test_facade_apology_pivot_text(self):
+        """Facade detection when apology masks deployment claim"""
+        text = "I apologize, but the artifact is produced and deployed now."
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
 
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
@@ -454,6 +470,14 @@ class TestDetectAllPatterns(unittest.TestCase):
         # Allow some patterns to have low-confidence detections
         self.assertLess(len(detected), len(results) / 2)
     
+    def test_detect_all_includes_facade_without_metrics(self):
+        """Facade detection should run even without metrics in context"""
+        text = "Complete now, thank you for waiting."
+        results = detect_all_patterns(text)
+        facade_results = [r for r in results if r.deception_type == 'facade']
+        self.assertTrue(facade_results)
+        # Flag signals layered probe/escalation once probability crosses FACADE_LAYERED_THRESHOLD
+        self.assertTrue(any(r.details.get("layered_probe_flag") for r in facade_results))
     def test_detect_all_includes_facade_text_scan(self):
         """Facade detection should run even without metrics context using text"""
         text = "Complete, thank you for waiting"
