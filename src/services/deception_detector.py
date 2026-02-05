@@ -208,6 +208,7 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
     # Low-cost politeness/apology layer (simulated competence mask)
     text_probability = 0.0
     politeness_hits: List[str] = []
+    politeness_seen = set()
     if text:
         text_lower = text.lower()
         politeness_patterns = [
@@ -229,7 +230,8 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
 
         for pattern in politeness_patterns:
             match = re.search(pattern, text_lower)
-            if match and match.group() not in politeness_hits:
+            if match and match.group() not in politeness_seen:
+                politeness_seen.add(match.group())
                 politeness_hits.append(match.group())
 
         completion_hit = any(re.search(pattern, text_lower) for pattern in completion_claims)
