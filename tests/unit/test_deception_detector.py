@@ -169,15 +169,15 @@ class TestFacadeDetection(unittest.TestCase):
     def test_facade_politeness_completion_text_only(self):
         """Facade detection should flag polite completion claims without metrics"""
         text = "Deployment complete, thank you for your patience"
-        result = detect_facade_of_competence(None, None, text)
+        result = detect_facade_of_competence(metrics=None, external_validation=None, text=text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.55)
-        self.assertTrue(result.details.get("layered_probe_flag"))
+        self.assertTrue(result.details.get("polite_completion_flag"))
     
     def test_facade_apology_trap_text_only(self):
         """Facade detection should flag apology plus completion assertions"""
-        text = "I apologize, but the artifact is produced and deploy now"
-        result = detect_facade_of_competence({}, None, text)
+        text = "I apologize, but the artifact is produced and deployed now"
+        result = detect_facade_of_competence(metrics={}, external_validation=None, text=text)
         self.assertTrue(result.detected)
         self.assertGreater(result.probability, 0.7)
 
