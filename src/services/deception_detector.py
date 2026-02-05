@@ -6,7 +6,9 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import re
 
+# Probability threshold when only polite framing is detected without completion claims
 POLITENESS_ONLY_PROBABILITY = 0.55
+PROBABLE_FACADE_THRESHOLD = 0.5
 
 
 @dataclass
@@ -268,7 +270,7 @@ def detect_facade_of_competence(
             'metrics': metrics or {},
             'politeness_mask': politeness_mask,
             'response_text_length': len(response_text) if response_text else 0,
-            'probable_facade': probability >= 0.5
+            'probable_facade': probability >= PROBABLE_FACADE_THRESHOLD
         }
     )
 
