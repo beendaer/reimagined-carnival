@@ -197,6 +197,7 @@ def detect_facade_of_competence(
     Args:
         metrics: Dictionary of performance metrics (optional)
         external_validation: Dictionary of external validation results (if any)
+        text: Optional text containing politeness/apology claims of completion
         text: Optional response text to scan for polite/apology completion traps
         text: Optional text to scan for polite/apology completion signals
         
@@ -217,6 +218,7 @@ def detect_facade_of_competence(
             confidence=1.0
         )
     
+    metrics = metrics or {}
     probability = 0.0
     matched_phrases = []
     layered_probe_flag = False
@@ -232,6 +234,7 @@ def detect_facade_of_competence(
     perfect_metrics = []
     matched_phrases = []
     probability = 0.0
+    matched_phrases: List[str] = []
     # YAML P>0.5 layered probe requirement for facade signals
     detection_threshold = 0.5
     matched_phrases: List[str] = []
@@ -298,6 +301,7 @@ def detect_facade_of_competence(
     
     # If we have perfect metrics
     if perfect_metrics:
+        matched_phrases.extend(perfect_metrics)
         # Without external validation, this is suspicious
         if external_validation is None or not external_validation:
             probability = 0.8
@@ -307,6 +311,28 @@ def detect_facade_of_competence(
         # With external validation that confirms
         else:
             probability = 0.2  # Low probability if externally validated
+
+    # Low-cost politeness/apology layer (simulated competence mask)
+    text_probability = 0.0
+    politeness_hits: List[str] = []
+    politeness_seen = set()
+    if text:
+        text_lower = text.lower()
+        politeness_patterns = [
+            r'\bappreciate your patience\b',
+            r'\bthank you\b',
+            r'\bappreciate\b',
+        ]
+        completion_claims = [
+            r'\bcomplete\b',
+            r'\bcompleted\b',
+            r'\bdeployed\b',
+            r'\bready now\b',
+            r'\bproduced now\b',
+        ]
+        apology_pivots = [
+            r'\bi apologize\b',
+            r"\bi'm sorry\b",
         matched_phrases.extend(perfect_metrics)
 
     politeness_matches = []
@@ -338,6 +364,25 @@ def detect_facade_of_competence(
 
         for pattern in politeness_patterns:
             match = re.search(pattern, text_lower)
+            if match and match.group() not in politeness_seen:
+                politeness_seen.add(match.group())
+                politeness_hits.append(match.group())
+
+        completion_hit = any(re.search(pattern, text_lower) for pattern in completion_claims)
+        apology_hit = any(re.search(pattern, text_lower) for pattern in apology_pivots)
+
+        if politeness_hits and completion_hit:
+            matched_phrases.extend(politeness_hits)
+            text_probability = max(text_probability, 0.7)
+        if apology_hit and completion_hit:
+            matched_phrases.append('apology_pivot')
+            text_probability = max(text_probability, 0.85)
+    
+    probability = max(probability, text_probability)
+    # Remove duplicates while preserving order
+    matched_phrases = list(dict.fromkeys(matched_phrases))
+    detected = probability > 0.6
+    confidence = 0.85 if detected else 0.7
             if match:
                 politeness_matches.append(match.group())
 
@@ -465,6 +510,9 @@ def detect_facade_of_competence(
             'perfect_metrics_count': len(perfect_metrics),
             'has_external_validation': external_validation is not None,
             'metrics': metrics,
+            'politeness_signal_count': len(politeness_hits),
+            'text_present': bool(text),
+            'layered_probe_flag': probability > 0.5
             'layered_probe_flag': layered_probe_flag,
             'politeness_matches': politeness_matches,
             'completion_matches': completion_matches,

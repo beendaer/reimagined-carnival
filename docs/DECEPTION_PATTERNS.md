@@ -50,6 +50,7 @@ result = detect_user_correction("That's wrong, it's not deployed")
 - No external verification attempts
 - Metrics that contradict observable reality
 - Multiple perfect metrics simultaneously
+- Polite completion/apology claims masking missing evidence ("complete, thank you", "I apologize, but deployed now")
 - Polite completion/apology masks such as "complete, thank you" or "I apologize, but deploy now" that double down on delivery claims without evidence (layered probe flag when probability ≥ 0.5)
 - Polite or apologetic language paired with completion/deployment claims (polite completion traps)
 
@@ -85,6 +86,11 @@ result = detect_facade_of_competence(metrics, external_validation=None)
 external = {'contradicts': True}
 result = detect_facade_of_competence(metrics, external)
 # result.probability = 0.95
+
+# With polite apology/assurance masking completion
+text = "Complete, thank you. I apologize, but it is deployed now and produced now."
+result = detect_facade_of_competence({}, external_validation=None, text=text)
+# result.detected = True (layered_probe_flag exposed via details)
 ```
 
 **Source:** Prior Grok interaction analysis

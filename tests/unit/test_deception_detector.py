@@ -249,6 +249,14 @@ class TestFacadeDetection(unittest.TestCase):
         matched_text = " ".join(result.matched_phrases).lower()
         self.assertIn("thank you", matched_text)
 
+    def test_polite_apology_facade_signal(self):
+        """Text-only politeness/apology trap triggers facade detection"""
+        text = "Complete, thank you. I apologize, but it is deployed now and produced now."
+        result = detect_facade_of_competence({}, external_validation=None, text=text)
+        self.assertTrue(result.detected)
+        self.assertIn('apology_pivot', result.matched_phrases)
+        self.assertTrue(result.details.get('layered_probe_flag'))
+
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
     """Test suite for unverified claims detection"""
