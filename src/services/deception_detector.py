@@ -260,6 +260,12 @@ def detect_unverified_claims(text: str) -> DeceptionResult:
         matched_phrases.extend(urls)
         probability = max(probability, 0.7)
 
+    drive_pattern = r'drive\.google\.com/[^\s<>"]+'
+    drive_links = re.findall(drive_pattern, text, re.IGNORECASE)
+    if drive_links:
+        matched_phrases.extend(drive_links)
+        probability = max(probability, 0.7)
+
     # File reference patterns (local files or drive mentions)
     file_reference_patterns = [
         r'\bbackend\.js\b',
