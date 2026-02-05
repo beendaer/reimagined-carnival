@@ -6,6 +6,10 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import re
 
+FACADE_TEXT_BASE_PROBABILITY = 0.5
+FACADE_TEXT_HIGH_PROBABILITY = 0.7
+FACADE_LAYERED_THRESHOLD = 0.5
+
 
 @dataclass
 class DeceptionResult:
@@ -250,22 +254,22 @@ def detect_facade_of_competence(
             match = re.search(pattern, text_lower)
             if match:
                 matched_phrases.append(match.group())
-                text_probability = max(text_probability, 0.7)
+                text_probability = max(text_probability, FACADE_TEXT_HIGH_PROBABILITY)
         
         if politeness_hits and completion_hits:
             matched_phrases.extend(politeness_hits + completion_hits)
-            text_probability = max(text_probability, 0.7)
+            text_probability = max(text_probability, FACADE_TEXT_HIGH_PROBABILITY)
         elif politeness_hits or completion_hits:
             matched_phrases.extend(politeness_hits + completion_hits)
-            text_probability = max(text_probability, 0.5)
+            text_probability = max(text_probability, FACADE_TEXT_BASE_PROBABILITY)
         
         probability = max(probability, text_probability)
     
     # Layered probe flag surfaces when probability crosses 0.5 to trigger follow-up
     # verification per the anti-deception YAML configuration used in dev
-    layered_probe_flag = probability >= 0.5
+    layered_probe_flag = probability >= FACADE_LAYERED_THRESHOLD
     # Lowered from 0.6 to align with the same P>=0.5 escalation rule for polite completion traps
-    detected = probability >= 0.5
+    detected = probability >= FACADE_LAYERED_THRESHOLD
     confidence = 0.85 if detected else 0.7
     
     return DeceptionResult(
