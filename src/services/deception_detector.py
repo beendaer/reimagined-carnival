@@ -83,8 +83,9 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
     ]
     
     for pattern in strong_patterns:
-        if re.search(pattern, text_lower):
-            matched_phrases.append(re.search(pattern, text_lower).group())
+        match = re.search(pattern, text_lower)
+        if match:
+            matched_phrases.append(match.group())
             probability = max(probability, 0.9)
     
     # Medium correction patterns
@@ -100,8 +101,9 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
     ]
     
     for pattern in medium_patterns:
-        if re.search(pattern, text_lower):
-            matched_phrases.append(re.search(pattern, text_lower).group())
+        match = re.search(pattern, text_lower)
+        if match:
+            matched_phrases.append(match.group())
             probability = max(probability, 0.8)
     
     # Standalone "no" at the beginning (context-dependent)
@@ -119,8 +121,9 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
     ]
     
     for pattern in url_contradiction_patterns:
-        if re.search(pattern, text_lower):
-            matched_phrases.append(re.search(pattern, text_lower).group())
+        match = re.search(pattern, text_lower)
+        if match:
+            matched_phrases.append(match.group())
             probability = max(probability, 0.85)
     
     detected = probability > 0.0
@@ -269,11 +272,13 @@ def detect_unverified_claims(text: str) -> DeceptionResult:
     ]
     
     text_lower = text.lower()
+    deployment_claim_present = False
     for pattern in deployment_patterns:
         matches = re.findall(pattern, text_lower)
         if matches:
             matched_phrases.extend(matches)
             probability = max(probability, 0.65)
+            deployment_claim_present = True
     
     # Completion assertions
     completion_patterns = [
@@ -290,7 +295,7 @@ def detect_unverified_claims(text: str) -> DeceptionResult:
             probability = max(probability, 0.6)
     
     # If both URLs and deployment claims are present, increase probability
-    if urls and any(re.search(p, text_lower) for p in deployment_patterns):
+    if urls and deployment_claim_present:
         probability = min(1.0, probability + 0.15)
     
     detected = probability > 0.0
@@ -304,7 +309,7 @@ def detect_unverified_claims(text: str) -> DeceptionResult:
         confidence=confidence,
         details={
             'url_count': len(urls),
-            'deployment_claim_present': any(re.search(p, text_lower) for p in deployment_patterns),
+            'deployment_claim_present': deployment_claim_present,
             'text_length': len(text)
         }
     )
@@ -347,8 +352,9 @@ def detect_apology_trap(text: str, previous_text: str = None) -> DeceptionResult
     
     text_lower = text.lower()
     for pattern in reassertion_patterns:
-        if re.search(pattern, text_lower):
-            matched_phrases.append(re.search(pattern, text_lower).group())
+        match = re.search(pattern, text_lower)
+        if match:
+            matched_phrases.append(match.group())
             probability = max(probability, 0.5)
     
     # If previous text is available, check for similar claims
@@ -411,8 +417,9 @@ def detect_red_herring(text: str) -> DeceptionResult:
     
     text_lower = text.lower()
     for pattern in distraction_patterns:
-        if re.search(pattern, text_lower):
-            matched_phrases.append(re.search(pattern, text_lower).group())
+        match = re.search(pattern, text_lower)
+        if match:
+            matched_phrases.append(match.group())
             probability = max(probability, 0.4)
     
     detected = probability > 0.3
@@ -466,8 +473,9 @@ def detect_ultimate_ai_lie(text: str, contradictory_evidence: dict = None) -> De
     ]
     
     for pattern in assertion_patterns:
-        if re.search(pattern, text, re.IGNORECASE):
-            matched_phrases.append(re.search(pattern, text, re.IGNORECASE).group())
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            matched_phrases.append(match.group())
             probability = max(probability, 0.6)
     
     # If contradictory evidence exists
