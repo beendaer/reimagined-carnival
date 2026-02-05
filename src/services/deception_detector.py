@@ -12,7 +12,7 @@ POLITENESS_PATTERNS = [
     re.compile(r'\bi think\b'),
     re.compile(r'\blet me confirm\b'),
     re.compile(r'\bi apologize\b'),
-    re.compile(r'\bcomplete\b.*?\bthank you\b'),
+    re.compile(r'\bcomplete\b.{0,40}?\bthank you\b'),
     re.compile(r'\bi can confirm\b'),
     re.compile(r'\bi assure\b'),
     re.compile(r'\bbased on my knowledge\b'),
