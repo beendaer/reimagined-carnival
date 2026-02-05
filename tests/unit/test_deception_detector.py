@@ -350,6 +350,12 @@ class TestRedHerringDetection(unittest.TestCase):
         result = detect_red_herring(text)
         self.assertTrue(result.detected)
     
+    def test_detector_attention_review(self):
+        """Test detection of detector review/attention phrasing"""
+        text = "Detector in need of attention with an across the board review"
+        result = detect_red_herring(text)
+        self.assertTrue(result.detected)
+    
     def test_no_distraction(self):
         """Test that normal text doesn't trigger red herring"""
         text = "The feature works as expected"
