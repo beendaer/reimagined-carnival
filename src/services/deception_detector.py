@@ -260,7 +260,7 @@ def detect_facade_of_competence(
         # Max guards prevent double counting when both patterns and apology pivots appear
         if politeness_hits and completion_hits:
             matched_phrases.extend(politeness_hits + completion_hits)
-            text_probability = max(text_probability, FACADE_TEXT_HIGH_PROBABILITY)
+            text_probability = max(text_probability, FACADE_TEXT_BASE_PROBABILITY)
         elif politeness_hits or completion_hits:
             # Capture whichever cue fired while keeping matched phrases distinct
             if politeness_hits:
