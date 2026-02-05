@@ -191,6 +191,7 @@ class TestFacadeDetection(unittest.TestCase):
         text = "Complete now, thank you for your patience."
         result = detect_facade_of_competence(None, None, text)
         self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
         self.assertTrue(result.details.get("layered_probe_flag"))
     
     def test_facade_apology_pivot_text(self):
