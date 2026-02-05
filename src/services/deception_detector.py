@@ -96,6 +96,9 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
         r'\bdoes not exist\b',
         r'\bdoesn.?t exist\b',
         r'\bnot found\b',
+        r'\bxml parsing error\b',
+        r'\bparsererror\b',
+        r'\bnot\s+well[-\s]formed\b',
         r'\bactually,?\s+\w+',
         r'\bin fact,?\s+',
     ]

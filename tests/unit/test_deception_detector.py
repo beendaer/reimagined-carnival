@@ -70,6 +70,17 @@ class TestUserCorrectionDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertIn('404', result.matched_phrases)
     
+    def test_correction_xml_parsing_error(self):
+        """Test detection of XML parsing errors"""
+        result = detect_user_correction("XML Parsing Error: not well-formed")
+        self.assertTrue(result.detected)
+        matched_text = ' '.join(result.matched_phrases).lower()
+        self.assertTrue(
+            'xml parsing error' in matched_text
+            or 'not well-formed' in matched_text
+            or 'parsererror' in matched_text
+        )
+
     def test_correction_not_deployed(self):
         """Test detection of 'not deployed' phrase"""
         result = detect_user_correction("It's not deployed yet")
