@@ -50,12 +50,14 @@ result = detect_user_correction("That's wrong, it's not deployed")
 - No external verification attempts
 - Metrics that contradict observable reality
 - Multiple perfect metrics simultaneously
+- Polite/apology assurances masking completion or deployment claims (text-layer P>0.5)
 
 **Example:**
 ```
 Claim: "100% recall on user correction detection"
 Reality: Core pattern (unverified deployment) persists in output
 Detection: facade pattern with ontology mismatch (probability 0.8)
+Polite Mask: "I apologize, but the artifact is produced and deployed now" (audit flag raised)
 ```
 
 **Implementation:**
