@@ -237,16 +237,17 @@ def detect_facade_of_competence(
         for pattern in POLITENESS_PATTERNS:
             match = pattern.search(text_lower)
             if match:
-                text_signals.append(match.group())
-                if pattern.pattern.startswith(r'\bi apologize'):
+                matched = match.group()
+                text_signals.append(matched)
+                if APOLOGY_TOKEN in matched:
                     apology_found = True
-                if pattern.pattern.endswith(r'deployed now\b'):
+                if DEPLOYED_TOKEN in matched:
                     deployed_found = True
         
         if text_signals:
             # Layered probe: politeness masks count as facade signals
             probability = max(probability, TEXT_BASE_PROBABILITY)
-            # Double-down apology combined with completion claim is stronger
+            # Apology or deploy-now assurance signals a stronger facade
             if apology_found or deployed_found:
                 probability = max(probability, TEXT_ESCALATED_PROBABILITY)
     
