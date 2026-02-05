@@ -183,6 +183,19 @@ class TestAPIEndpoints(unittest.TestCase):
             data = response.json()
             self.assertIn("detail", data)
             self.assertEqual(data["detail"], "API key not configured on server")
+    
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_validate_endpoint_rejects_non_string_input(self):
+        """Validate endpoint should reject non-string input_text values"""
+        response = self.client.post(
+            "/validate",
+            json={"input_text": 123, "context": "testing"},
+            headers={"x-api-key": "test_api_key_12345"}
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertIn("detail", data)
+        self.assertEqual(data["detail"], "input_text must be a string")
 
 
 if __name__ == "__main__":

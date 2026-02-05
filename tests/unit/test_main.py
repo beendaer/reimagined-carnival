@@ -68,6 +68,11 @@ class TestValidateInput(unittest.TestCase):
         self.assertTrue(result["noise_detected"])
         self.assertFalse(result["validation_passed"])
     
+    def test_validate_input_non_string_raises(self):
+        """Non-string input should raise a clear error"""
+        with self.assertRaises(ValueError):
+            validate_input(123)
+    
     def test_coherence_score_range(self):
         """Test that coherence score is always between 0 and 1"""
         test_inputs = [
