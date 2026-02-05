@@ -13,7 +13,8 @@ from utils.helpers import (
     validate_documentation_structure,
     validate_fact_data,
     serialize_datetime,
-    format_report
+    format_report,
+    extract_key_code_segments
 )
 from datetime import datetime
 
@@ -203,6 +204,31 @@ class TestOtherHelpers(unittest.TestCase):
         
         invalid_data = {'id': 'test'}
         self.assertFalse(validate_fact_data(invalid_data))
+
+    def test_extract_key_code_segments_with_filename_context(self):
+        """Extracts code using nearby filename mention."""
+        history = [
+            {
+                "tagged_text": {
+                    "header": "Extracting from history",
+                    "summary": "and extract key code segments from conversation history"
+                }
+            },
+            {"tagged_text": {"summary": "Focus on bbfb_engine.py for extraction."}},
+            {"tagged_text": {"summary": "```python\nprint('hello')\n```"}}
+        ]
+
+        result = extract_key_code_segments(history)
+        self.assertIn("### bbfb_engine.py", result)
+        self.assertIn("```python", result)
+        self.assertIn("print('hello')", result)
+
+    def test_extract_key_code_segments_with_labeled_block(self):
+        """Handles code fences labeled with filename."""
+        history = "```utils/helpers.py\n# file: utils/helpers.py\nvalue = 1\n```"
+        result = extract_key_code_segments(history)
+        self.assertTrue(result.startswith("### utils/helpers.py"))
+        self.assertIn("value = 1", result)
 
 
 if __name__ == '__main__':

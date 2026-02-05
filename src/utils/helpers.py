@@ -4,8 +4,9 @@ Provides validation and formatting utilities for the monolith
 """
 from typing import Dict, Any, List
 from datetime import datetime
-from pathlib import Path
+from collections import OrderedDict
 import os
+import re
 
 
 def validate_third_party_framework(config: Any) -> Dict[str, Any]:
@@ -195,3 +196,108 @@ def format_report(data: Dict[str, Any], title: str = "Report") -> str:
     lines.append("=" * 50)
     
     return "\n".join(lines)
+
+
+def _collect_text_fragments(value: Any) -> List[str]:
+    """Recursively collect string fragments from nested conversation history."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        fragments: List[str] = []
+        for item in value.values():
+            fragments.extend(_collect_text_fragments(item))
+        return fragments
+    if isinstance(value, list):
+        fragments: List[str] = []
+        for item in value:
+            fragments.extend(_collect_text_fragments(item))
+        return fragments
+    return []
+
+
+def extract_key_code_segments(history: Any) -> str:
+    """
+    Extract key code segments from conversation history and format them as Markdown.
+
+    The function looks for fenced code blocks (```), associates them with the
+    nearest file name mention, and returns only the Markdown-formatted snippets.
+
+    Args:
+        history: Conversation history as a string, list, or dictionary.
+
+    Returns:
+        Markdown string containing extracted code snippets grouped by file name.
+    """
+    if history is None:
+        return ""
+
+    # Gather textual content while preserving newlines
+    if isinstance(history, str):
+        text = history
+    else:
+        fragments = _collect_text_fragments(history)
+        text = "\n".join(fragments)
+
+    file_pattern = re.compile(r"[A-Za-z0-9_\-./]+\.[A-Za-z0-9]+")
+    code_blocks = list(
+        re.finditer(r"```(?P<label>[^\n`]*)\n(?P<code>[\s\S]*?)```", text)
+    )
+
+    if not code_blocks:
+        return ""
+
+    segments = []
+    for match in code_blocks:
+        label = match.group("label").strip()
+        code = match.group("code").strip("\n")
+
+        file_name = None
+        language = None
+
+        # If the fence label looks like a filename, use it. Otherwise treat as language.
+        if label:
+            if file_pattern.fullmatch(label):
+                file_name = label
+            else:
+                language = label
+
+        # Try to find explicit file markers inside the code block.
+        if not file_name:
+            inline_match = re.search(
+                r"(?im)^(?:#|//|<!--|;)\s*file\s*:\s*([^\s]+)", code
+            )
+            if inline_match:
+                file_name = inline_match.group(1).strip()
+
+        # Look backwards in the history for the nearest filename mention.
+        if not file_name:
+            prefix = text[: match.start()]
+            filenames = file_pattern.findall(prefix)
+            if filenames:
+                file_name = filenames[-1]
+
+        if not file_name:
+            file_name = f"snippet-{len(segments) + 1}"
+
+        segments.append(
+            {"file": file_name, "language": language, "code": code}
+        )
+
+    grouped: "OrderedDict[str, List[Dict[str, Any]]]" = OrderedDict()
+    for segment in segments:
+        grouped.setdefault(segment["file"], []).append(segment)
+
+    parts: List[str] = []
+    for file_name, snippets in grouped.items():
+        for idx, snippet in enumerate(snippets, start=1):
+            heading = f"### {file_name}"
+            if len(snippets) > 1:
+                heading = f"{heading} (part {idx})"
+            parts.append(heading)
+            fence = f"```{snippet['language']}" if snippet["language"] else "```"
+            parts.append(fence)
+            parts.append(snippet["code"])
+            parts.append("```")
+            parts.append("")  # spacer
+
+    return "\n".join(parts).rstrip()
