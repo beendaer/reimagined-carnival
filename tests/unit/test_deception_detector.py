@@ -166,6 +166,21 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertGreater(result.probability, 0.9)
     
+    def test_facade_politeness_masking(self):
+        """Facade detection should flag polite assurance without proof"""
+        text = "Thank you, deployment is ready now. I have checked and confirmed."
+        result = detect_facade_of_competence(None, None, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreater(result.probability, 0.6)
+        self.assertGreater(result.details.get("textual_signals_count", 0), 0)
+    
+    def test_facade_polite_without_claims(self):
+        """Politeness alone should not trigger facade detection"""
+        text = "Thank you for the update and your patience."
+        result = detect_facade_of_competence(None, None, text=text)
+        self.assertFalse(result.detected)
+        self.assertLess(result.probability, 0.6)
+    
     def test_no_facade_realistic_metrics(self):
         """Test that realistic metrics don't trigger facade"""
         metrics = {
