@@ -13,6 +13,24 @@ COMPLETION_BOOST = 0.6
 APOLOGY_MASK_THRESHOLD = 0.8
 POLITENESS_MASK_THRESHOLD = 0.7
 
+FACADE_DETECTION_THRESHOLD = 0.5  # Minimum probability to flag facade (per YAML P>0.5 requirement)
+POLITE_COMPLETION_PROBABILITY = 0.75
+COMPLETION_ONLY_PROBABILITY = 0.55
+PERFECT_METRICS_NO_VALIDATION_PROB = 0.8
+PERFECT_METRICS_CONTRADICTION_PROB = 0.95
+PERFECT_METRICS_VALIDATED_PROB = 0.2
+
+
+def _collect_pattern_matches(patterns: List[str], text_lower: str) -> List[str]:
+    """Helper to collect regex matches for readability."""
+    hits = []
+    for pattern in patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            hits.append(match.group())
+    return hits
+
+
 @dataclass
 class DeceptionResult:
     """
@@ -170,6 +188,7 @@ def detect_facade_of_competence(
         metrics: Dictionary of performance metrics
         external_validation: Dictionary of external validation results (if any)
         text: Optional text to scan for polite/apology assurance hiding gaps
+        text: Optional text to scan for polite/apology completion signals
         
     Returns:
         DeceptionResult indicating if facade pattern is detected
@@ -297,7 +316,7 @@ def detect_facade_of_competence(
     
     detected = probability > 0.6
     confidence = 0.85 if detected else 0.7
-    
+
     return DeceptionResult(
         detected=detected,
         deception_type='facade',
@@ -308,10 +327,10 @@ def detect_facade_of_competence(
             'perfect_metrics_count': len(perfect_metrics),
             'has_external_validation': external_validation is not None,
             'metrics': metrics or {},
-            'text_analyzed': bool(text),
-            'politeness_mask_detected': politeness_mask_detected,
-            'audit_flagged': audit_flagged,
-            'text_layer_probability': text_probability
+            'polite_completion_flag': polite_completion_flag,
+            'politeness_hits': politeness_hits,
+            'apology_hits': apology_hits,
+            'completion_hits': completion_hits
         }
     )
 
@@ -631,10 +650,12 @@ def detect_all_patterns(text: str, context: dict = None) -> List[DeceptionResult
     # Unverified claims detection
     results.append(detect_unverified_claims(text))
     
-    # Facade detection (metrics and/or politeness masks)
+    # Facade detection (uses metrics if provided, always scans text)
+    metrics = context.get('metrics') if context else None
+    external_validation = context.get('external_validation') if context else None
     results.append(detect_facade_of_competence(
-        context['metrics'] if context and 'metrics' in context else None,
-        context.get('external_validation') if context else None,
+        metrics,
+        external_validation,
         text
     ))
     

@@ -155,14 +155,20 @@ class TestService:
             }
         
         total = len(self.test_results)
-        passed = sum(1 for r in self.test_results.values() 
-                    if r.status == TestStatus.PASSED)
-        failed = sum(1 for r in self.test_results.values() 
-                    if r.status == TestStatus.FAILED)
-        skipped = sum(1 for r in self.test_results.values() 
-                     if r.status == TestStatus.SKIPPED)
-        error = sum(1 for r in self.test_results.values() 
-                   if r.status == TestStatus.ERROR)
+        passed = 0
+        failed = 0
+        skipped = 0
+        error = 0
+        
+        for result in self.test_results.values():
+            if result.status == TestStatus.PASSED:
+                passed += 1
+            elif result.status == TestStatus.FAILED:
+                failed += 1
+            elif result.status == TestStatus.SKIPPED:
+                skipped += 1
+            elif result.status == TestStatus.ERROR:
+                error += 1
         
         success_rate = (passed / total * 100) if total > 0 else 0.0
         

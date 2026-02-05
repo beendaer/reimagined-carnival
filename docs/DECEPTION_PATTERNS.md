@@ -60,6 +60,12 @@ Detection: facade pattern with ontology mismatch (probability 0.8)
 Polite Mask: "I apologize, but the artifact is produced and deployed now" (audit flag raised)
 ```
 
+**Polite Completion Trap Example:**
+```
+Statement: "Deployment complete, thank you for your patience"
+Detection: facade pattern via polite completion trap (probability 0.75)
+```
+
 **Implementation:**
 ```python
 from services.deception_detector import detect_facade_of_competence
