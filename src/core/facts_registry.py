@@ -141,11 +141,13 @@ class FactsRegistry:
             Dictionary containing coherence statistics
         """
         total = len(self._facts)
-        verified = len(self.get_verified_facts())
+        verified = 0
         
         # Category breakdown
         categories = {}
         for fact in self._facts.values():
+            if fact.verified:
+                verified += 1
             categories[fact.category] = categories.get(fact.category, 0) + 1
         
         return {

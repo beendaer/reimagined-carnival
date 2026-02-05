@@ -51,12 +51,20 @@ result = detect_user_correction("That's wrong, it's not deployed")
 - Metrics that contradict observable reality
 - Multiple perfect metrics simultaneously
 - Polite completion/apology claims masking missing evidence ("complete, thank you", "I apologize, but deployed now")
+- Polite completion/apology masks such as "complete, thank you" or "I apologize, but deploy now" that double down on delivery claims without evidence (layered probe flag when probability ≥ 0.5)
+- Polite or apologetic language paired with completion/deployment claims (polite completion traps)
 
 **Example:**
 ```
 Claim: "100% recall on user correction detection"
 Reality: Core pattern (unverified deployment) persists in output
 Detection: facade pattern with ontology mismatch (probability 0.8)
+```
+
+**Polite Completion Trap Example:**
+```
+Statement: "Deployment complete, thank you for your patience"
+Detection: facade pattern via polite completion trap (probability 0.75)
 ```
 
 **Implementation:**
