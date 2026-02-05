@@ -8,7 +8,10 @@ import re
 
 # Probability threshold when only polite framing is detected without completion claims
 POLITENESS_ONLY_PROBABILITY = 0.55
-PROBABLE_FACADE_THRESHOLD = 0.5
+# Probability when polite framing is combined with completion/deployment claims
+POLITENESS_MASK_PROBABILITY = 0.7
+# Threshold for flagging facade probability in details
+FACADE_PROBABILITY_FLAG_THRESHOLD = 0.5
 
 
 @dataclass
@@ -250,7 +253,7 @@ def detect_facade_of_competence(
         if politeness_hits and completion_hits:
             matched_phrases.extend(politeness_hits + completion_hits)
             politeness_mask = True
-            probability = max(probability, 0.7)
+            probability = max(probability, POLITENESS_MASK_PROBABILITY)
         elif politeness_hits:
             # Polite framing alone is a weaker signal without completion claims
             probability = max(probability, POLITENESS_ONLY_PROBABILITY)
@@ -270,7 +273,7 @@ def detect_facade_of_competence(
             'metrics': metrics or {},
             'politeness_mask': politeness_mask,
             'response_text_length': len(response_text) if response_text else 0,
-            'probable_facade': probability >= PROBABLE_FACADE_THRESHOLD
+            'probable_facade': probability >= FACADE_PROBABILITY_FLAG_THRESHOLD
         }
     )
 
