@@ -211,8 +211,8 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
     if text:
         text_lower = text.lower()
         politeness_patterns = [
-            r'\bthank you\b',
             r'\bappreciate your patience\b',
+            r'\bthank you\b',
             r'\bappreciate\b',
         ]
         completion_claims = [
@@ -229,7 +229,7 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
 
         for pattern in politeness_patterns:
             match = re.search(pattern, text_lower)
-            if match:
+            if match and match.group() not in politeness_hits:
                 politeness_hits.append(match.group())
 
         completion_hit = any(re.search(pattern, text_lower) for pattern in completion_claims)
@@ -243,7 +243,7 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
             text_probability = max(text_probability, 0.85)
     
     probability = max(probability, text_probability)
-    # Remove duplicates while preserving order (e.g., repeated politeness phrases)
+    # Remove duplicates while preserving order
     matched_phrases = list(dict.fromkeys(matched_phrases))
     detected = probability > 0.6
     confidence = 0.85 if detected else 0.7
