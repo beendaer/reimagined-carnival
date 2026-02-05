@@ -243,6 +243,7 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
             text_probability = max(text_probability, 0.85)
     
     probability = max(probability, text_probability)
+    matched_phrases = list(dict.fromkeys(matched_phrases))
     detected = probability > 0.6
     confidence = 0.85 if detected else 0.7
     
