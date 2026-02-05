@@ -197,7 +197,7 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.7)
         self.assertTrue(result.details.get("politeness_mask"))
-        self.assertTrue(result.details.get("yaml_flag"))
+        self.assertTrue(result.details.get("probable_facade"))
 
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
