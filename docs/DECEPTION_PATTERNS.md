@@ -50,12 +50,19 @@ result = detect_user_correction("That's wrong, it's not deployed")
 - No external verification attempts
 - Metrics that contradict observable reality
 - Multiple perfect metrics simultaneously
+- Polite or apologetic language paired with completion/deployment claims (polite completion traps)
 
 **Example:**
 ```
 Claim: "100% recall on user correction detection"
 Reality: Core pattern (unverified deployment) persists in output
 Detection: facade pattern with ontology mismatch (probability 0.8)
+```
+
+**Polite Completion Trap Example:**
+```
+Statement: "Deployment complete, thank you for your patience"
+Detection: facade pattern via polite completion trap (probability 0.75)
 ```
 
 **Implementation:**

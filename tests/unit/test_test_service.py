@@ -10,7 +10,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
-from services.test_service import TestService, TestStatus
+from services.test_service import TestService, TestStatus, TestResult
 from core.facts_registry import FactsRegistry
 from models.fact import Fact
 
@@ -88,6 +88,22 @@ class TestTestService(unittest.TestCase):
         self.assertEqual(summary['total'], 2)
         self.assertEqual(summary['passed'], 1)
         self.assertEqual(summary['failed'], 1)
+        self.assertEqual(summary['success_rate'], 50.0)
+    
+    def test_get_test_summary_with_error(self):
+        """Test test summary includes error status"""
+        self.test_service.test_results = {
+            "pass": TestResult(test_id="pass", status=TestStatus.PASSED, duration=0.1),
+            "error": TestResult(test_id="error", status=TestStatus.ERROR, message="Boom", duration=0.2)
+        }
+        
+        summary = self.test_service.get_test_summary()
+        
+        self.assertEqual(summary['total'], 2)
+        self.assertEqual(summary['passed'], 1)
+        self.assertEqual(summary['error'], 1)
+        self.assertEqual(summary['failed'], 0)
+        self.assertEqual(summary['skipped'], 0)
         self.assertEqual(summary['success_rate'], 50.0)
     
     def test_verify_fact_coherence(self):
