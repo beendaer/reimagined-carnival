@@ -10,8 +10,8 @@ import re
 FILENAME_PATTERN = re.compile(
     r"""
     (?!https?://)                      # avoid matching full URLs
-    (?=[A-Za-z0-9_\-./+]*[A-Za-z_])    # require at least one alphabetic character
-    [A-Za-z0-9_\-./+]+                 # allow common path characters (including '+')
+    (?=[A-Za-z0-9_./+\-]*[A-Za-z_])    # require at least one alphabetic character
+    [A-Za-z0-9_./+\-]+                 # allow common path characters (including '+')
     \.[A-Za-z][A-Za-z0-9]+             # extension must start with a letter
     """,
     re.VERBOSE,
@@ -23,7 +23,7 @@ FILENAME_PATTERN = re.compile(
 #   - Assembly style: ; file: path
 #   - C block style: /* file: path */ or /** file: path */
 INLINE_FILE_COMMENT_PATTERN = re.compile(
-    r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+)"
+    r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s>*]+)"
 )
 
 
