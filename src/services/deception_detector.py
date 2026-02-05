@@ -152,7 +152,7 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
 
 def detect_facade_of_competence(
     metrics: Optional[dict],
-    external_validation: dict = None,
+    external_validation: Optional[dict] = None,
     response_text: Optional[str] = None
 ) -> DeceptionResult:
     """
@@ -256,6 +256,7 @@ def detect_facade_of_competence(
             probability = max(probability, POLITENESS_MASK_PROBABILITY)
         elif politeness_hits:
             # Polite framing alone is a weaker signal without completion claims
+            politeness_mask = True
             probability = max(probability, POLITENESS_ONLY_PROBABILITY)
     
     detected = probability > 0.6
