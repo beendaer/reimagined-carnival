@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 import re
 
 # Probability threshold when only polite framing is detected without completion claims
-POLITENESS_ONLY_PROBABILITY = 0.55
+POLITENESS_ONLY_PROBABILITY = 0.45
 # Probability when polite framing is combined with completion/deployment claims
 POLITENESS_MASK_PROBABILITY = 0.7
 # Threshold for flagging facade probability in details
@@ -232,7 +232,7 @@ def detect_facade_of_competence(
             r'\bcomplete\b',
             r'\bcompleted\b',
             r'\bready\b',
-            r'\bdeploy(?:ed|ment)?\b',
+            r'\bdeploy(?:ed|ment)\b',
             r'\bproduced\b',
             r'\blive now\b',
             r'\bavailable now\b'
@@ -243,13 +243,13 @@ def detect_facade_of_competence(
 
         for pattern in politeness_patterns:
             match = re.search(pattern, text_lower)
-            if match:
+            if match and match.group() not in politeness_hits:
                 politeness_hits.append(match.group())
                 politeness_detected = True
 
         for pattern in completion_patterns:
             match = re.search(pattern, text_lower)
-            if match:
+            if match and match.group() not in completion_hits:
                 completion_hits.append(match.group())
 
         if politeness_hits and completion_hits:
