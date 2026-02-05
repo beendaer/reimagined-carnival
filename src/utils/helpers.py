@@ -7,14 +7,14 @@ from datetime import datetime
 import os
 import re
 
-# Regex patterns used for extracting file hints from conversational text.
-# FILENAME_PATTERN details:
-#   (?!https?://)           -> avoid matching full URLs
-#   (?=[A-Za-z0-9_\-./+]*[A-Za-z_]) -> require at least one alphabetic character to avoid pure numbers
-#   [A-Za-z0-9_\-./+]+      -> allow common path characters (including '+') before the extension
-#   \.[A-Za-z][A-Za-z0-9]+  -> extension must start with a letter
 FILENAME_PATTERN = re.compile(
-    r"(?!https?://)(?=[A-Za-z0-9_\-./+]*[A-Za-z_])[A-Za-z0-9_\-./+]+\.[A-Za-z][A-Za-z0-9]+"
+    r"""
+    (?!https?://)                      # avoid matching full URLs
+    (?=[A-Za-z0-9_\-./+]*[A-Za-z_])    # require at least one alphabetic character
+    [A-Za-z0-9_\-./+]+                 # allow common path characters (including '+')
+    \.[A-Za-z][A-Za-z0-9]+             # extension must start with a letter
+    """,
+    re.VERBOSE,
 )
 # INLINE_FILE_COMMENT_PATTERN supports:
 #   - Python style: # file: path
@@ -254,7 +254,9 @@ def extract_key_code_segments(history: Any) -> str:
         text = "\n".join(fragments)
 
     code_blocks = list(
-        re.finditer(r"```(?P<label>[^\n`]*)\n(?P<code>[\s\S]*?)```", text)
+        re.finditer(
+            r"```(?P<label>[^\n`]*)\n(?P<code>.+?)```", text, re.DOTALL
+        )
     )
 
     if not code_blocks:
@@ -271,8 +273,9 @@ def extract_key_code_segments(history: Any) -> str:
 
         # If the fence label looks like a filename, use it. Otherwise treat as language.
         if label:
-            if FILENAME_PATTERN.fullmatch(label):
-                file_name = label
+            label_match = FILENAME_PATTERN.search(label)
+            if label_match:
+                file_name = label_match.group(0)
             else:
                 language = label
 
