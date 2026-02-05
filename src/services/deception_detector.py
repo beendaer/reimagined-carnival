@@ -261,7 +261,10 @@ def detect_facade_of_competence(
             matched_phrases.extend(politeness_hits + completion_hits)
             text_probability = max(text_probability, FACADE_TEXT_HIGH_PROBABILITY)
         elif politeness_hits or completion_hits:
-            matched_phrases.extend(politeness_hits + completion_hits)
+            if politeness_hits:
+                matched_phrases.extend(politeness_hits)
+            if completion_hits:
+                matched_phrases.extend(completion_hits)
             text_probability = max(text_probability, FACADE_TEXT_BASE_PROBABILITY)
         
         probability = max(probability, text_probability)
