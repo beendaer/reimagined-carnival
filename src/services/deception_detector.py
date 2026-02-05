@@ -254,11 +254,22 @@ def detect_unverified_claims(text: str) -> DeceptionResult:
     probability = 0.0
     
     # URL patterns
-    url_pattern = r'https?://[^\s<>"]+'
+    url_pattern = r'(?:https?|content)://[^\s<>"]+'
     urls = re.findall(url_pattern, text)
     if urls:
         matched_phrases.extend(urls)
         probability = max(probability, 0.7)
+
+    # File reference patterns (local files or drive mentions)
+    file_reference_patterns = [
+        r'\bbackend\.js\b',
+        r'@mydrive\b',
+    ]
+    for pattern in file_reference_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            matched_phrases.extend(matches)
+            probability = max(probability, 0.6)
     
     # Deployment claims
     deployment_patterns = [
