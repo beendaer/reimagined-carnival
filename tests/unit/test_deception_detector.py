@@ -166,6 +166,25 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertGreater(result.probability, 0.9)
     
+    def test_facade_politeness_completion_text_only(self):
+        """Facade detection should flag polite completion claims without metrics"""
+        text = "Deployment complete, thank you for your patience"
+        result = detect_facade_of_competence(metrics=None, external_validation=None, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.55)
+        self.assertTrue(result.details.get("polite_completion_flag"))
+        self.assertIn("thank you", result.details.get("politeness_hits", []))
+        self.assertIn("complete", result.details.get("completion_hits", []))
+    
+    def test_facade_apology_trap_text_only(self):
+        """Facade detection should flag apology plus completion assertions"""
+        text = "I apologize, but the artifact is produced and deployed now"
+        result = detect_facade_of_competence(metrics={}, external_validation=None, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreater(result.probability, 0.7)
+        self.assertIn("i apologize", result.details.get("apology_hits", []))
+        self.assertIn("artifact is produced", result.details.get("completion_hits", []))
+
     def test_no_facade_realistic_metrics(self):
         """Test that realistic metrics don't trigger facade"""
         metrics = {
@@ -176,6 +195,24 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(metrics)
         self.assertFalse(result.detected)
     
+    def test_facade_polite_completion_text_only(self):
+        """Facade detection should flag polite completion masking missing work"""
+        text = "This is complete, thank you. The artifact is produced and deployed now."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
+        self.assertIn('layered_probe_flag', result.details)
+        self.assertTrue(result.details['layered_probe_flag'])
+    
+    def test_facade_apology_assurance_combo(self):
+        """Facade detection should trigger on apology pivot plus assurance"""
+        text = "I apologize, but it should be available now and the deployment is live."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
+        self.assertIn('layered_probe_flag', result.details)
+        self.assertTrue(result.details['layered_probe_flag'])
+    
     def test_empty_metrics(self):
         """Test with empty metrics dictionary"""
         result = detect_facade_of_competence({})
@@ -185,6 +222,22 @@ class TestFacadeDetection(unittest.TestCase):
         """Test with None metrics"""
         result = detect_facade_of_competence(None)
         self.assertFalse(result.detected)
+    
+    def test_facade_polite_completion_text(self):
+        """Text-only facade detection for polite completion claim"""
+        text = "Complete now, thank you for your patience."
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
+        # Flag signals layered probe/escalation once probability crosses FACADE_LAYERED_THRESHOLD
+        self.assertTrue(result.details.get("layered_probe_flag"))
+    
+    def test_facade_apology_pivot_text(self):
+        """Facade detection when apology masks deployment claim"""
+        text = "I apologize, but the artifact is produced and deployed now."
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
 
     def test_polite_completion_facade_text_only(self):
         """Detect polite completion + apology trap as facade without metrics"""
@@ -426,6 +479,22 @@ class TestDetectAllPatterns(unittest.TestCase):
         detected = [r for r in results if r.detected]
         # Allow some patterns to have low-confidence detections
         self.assertLess(len(detected), len(results) / 2)
+    
+    def test_detect_all_includes_facade_without_metrics(self):
+        """Facade detection should run even without metrics in context"""
+        text = "Complete now, thank you for waiting."
+        results = detect_all_patterns(text)
+        facade_results = [r for r in results if r.deception_type == 'facade']
+        self.assertTrue(facade_results)
+        # Flag signals layered probe/escalation once probability crosses FACADE_LAYERED_THRESHOLD
+        self.assertTrue(any(r.details.get("layered_probe_flag") for r in facade_results))
+    def test_detect_all_includes_facade_text_scan(self):
+        """Facade detection should run even without metrics context using text"""
+        text = "Complete, thank you for waiting"
+        results = detect_all_patterns(text)
+        facade_results = [r for r in results if r.deception_type == 'facade']
+        self.assertTrue(facade_results)
+        self.assertTrue(any(r.detected for r in facade_results))
 
 
 class TestDeceptionResult(unittest.TestCase):
