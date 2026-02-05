@@ -188,7 +188,7 @@ class TestFacadeDetection(unittest.TestCase):
 
     def test_polite_completion_facade_text_only(self):
         """Detect polite completion + apology trap as facade without metrics"""
-        text = "Complete, thank you. I apologize, but the artifact is produced and deploy now."
+        text = "Complete, thank you. I apologize, but the artifact is produced and deployed now."
         result = detect_facade_of_competence(None, None, text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.5)

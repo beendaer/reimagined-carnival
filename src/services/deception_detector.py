@@ -270,7 +270,7 @@ def detect_facade_of_competence(metrics: dict = None, external_validation: dict 
             'perfect_metrics_count': len(perfect_metrics),
             'has_external_validation': external_validation is not None,
             'metrics': metrics,
-            'layered_probe_flag': layered_probe_flag or probability >= 0.5,
+            'layered_probe_flag': layered_probe_flag,
             'politeness_matches': politeness_matches,
             'completion_matches': completion_matches,
             'apology_matches': apology_matches,
