@@ -243,7 +243,7 @@ def detect_facade_of_competence(metrics: dict, external_validation: dict = None,
             text_probability = max(text_probability, 0.85)
     
     probability = max(probability, text_probability)
-    # Preserve match ordering while removing duplicates (e.g., repeated politeness phrases)
+    # Remove duplicates while preserving order (e.g., repeated politeness phrases)
     matched_phrases = list(dict.fromkeys(matched_phrases))
     detected = probability > 0.6
     confidence = 0.85 if detected else 0.7
