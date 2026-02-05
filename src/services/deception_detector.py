@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import re
 
+POLITENESS_ONLY_PROBABILITY = 0.55
+
 
 @dataclass
 class DeceptionResult:
@@ -185,7 +187,6 @@ def detect_facade_of_competence(
     probability = 0.0
     matched_phrases = []
     politeness_mask = False
-    POLITENESS_ONLY_PROBABILITY = 0.55
     
     # Check for perfect metrics (1.0 or 100%)
     perfect_threshold = 0.995
@@ -259,7 +260,7 @@ def detect_facade_of_competence(
         detected=detected,
         deception_type='facade',
         probability=probability,
-        matched_phrases=matched_phrases if matched_phrases else perfect_metrics,
+        matched_phrases=matched_phrases,
         confidence=confidence,
         details={
             'perfect_metrics_count': len(perfect_metrics),
