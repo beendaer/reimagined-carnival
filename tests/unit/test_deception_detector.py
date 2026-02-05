@@ -16,7 +16,8 @@ from services.deception_detector import (
     detect_red_herring,
     detect_ultimate_ai_lie,
     detect_all_patterns,
-    DeceptionResult
+    DeceptionResult,
+    COMPLETION_THANKS_MAX_CHARS
 )
 
 
@@ -195,6 +196,46 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(metrics)
         self.assertFalse(result.detected)
     
+    def test_facade_polite_completion_mask(self):
+        """Polite completion phrasing without evidence should flag facade"""
+        text = "Complete, thank you for your patience"
+        result = detect_facade_of_competence(None, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.65)
+        matched = " ".join(result.matched_phrases).lower()
+        self.assertIn("complete", matched)
+        self.assertIn("thank you", matched)
+    
+    def test_facade_polite_completion_span_limit(self):
+        """Completion and thanks separated by long span should not match"""
+        over_limit = COMPLETION_THANKS_MAX_CHARS + 5
+        text = "Complete " + ("x" * over_limit) + " thank you"
+        result = detect_facade_of_competence(None, text=text)
+        self.assertFalse(result.detected)
+    
+    def test_facade_apology_with_deploy_now(self):
+        """Apology plus deploy-now assurance should raise probability"""
+        text = "I apologize, but the artifact is produced and it is deployed now."
+        result = detect_facade_of_competence({}, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.75)
+
+    def test_facade_apology_only_escalates(self):
+        """Apology alone should escalate facade probability"""
+        text = "I apologize for the delay"
+        result = detect_facade_of_competence({}, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.75)
+        self.assertEqual(result.details.get("perfect_metrics_count"), 0)
+
+    def test_facade_deployed_now_only_escalates(self):
+        """Deploy-now assurance alone should escalate facade probability"""
+        text = "It is deployed now and should be ready"
+        result = detect_facade_of_competence({}, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.75)
+        self.assertEqual(result.details.get("perfect_metrics_count"), 0)
+
     def test_facade_polite_completion_text_only(self):
         """Facade detection should flag polite completion masking missing work"""
         text = "This is complete, thank you. The artifact is produced and deployed now."
