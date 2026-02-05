@@ -223,7 +223,8 @@ def detect_facade_of_competence(
             r'\bthank you\b',
             r'\bthanks\b',
             r'\bi apologize\b',
-            r"\bi'?m sorry\b",
+            r"\bi'm sorry\b",
+            r'\bim sorry\b',
             r'\bi am sorry\b',
             r'\bi appreciate\b'
         ]
@@ -231,7 +232,7 @@ def detect_facade_of_competence(
             r'\bcomplete\b',
             r'\bcompleted\b',
             r'\bready\b',
-            r'\bdeploy(?:ed|ment)\b',
+            r'\bdeploy(?:ed|ment)?\b',
             r'\bproduced\b',
             r'\blive now\b',
             r'\bavailable now\b'
