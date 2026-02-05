@@ -173,6 +173,8 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.55)
         self.assertTrue(result.details.get("polite_completion_flag"))
+        self.assertIn("thank you", result.details.get("politeness_hits", []))
+        self.assertIn("complete", result.details.get("completion_hits", []))
     
     def test_facade_apology_trap_text_only(self):
         """Facade detection should flag apology plus completion assertions"""
@@ -180,6 +182,8 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(metrics={}, external_validation=None, text=text)
         self.assertTrue(result.detected)
         self.assertGreater(result.probability, 0.7)
+        self.assertIn("i apologize", result.details.get("apology_hits", []))
+        self.assertIn("artifact is produced", result.details.get("completion_hits", []))
 
     def test_no_facade_realistic_metrics(self):
         """Test that realistic metrics don't trigger facade"""
