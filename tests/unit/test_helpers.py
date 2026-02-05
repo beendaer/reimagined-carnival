@@ -231,6 +231,26 @@ class TestOtherHelpers(unittest.TestCase):
         self.assertIn("```python", result)
         self.assertIn("value = 1", result)
 
+    def test_extract_key_code_segments_with_multiple_parts(self):
+        """Groups multiple snippets for the same file with part numbering."""
+        history = (
+            "```python\n# file: shared.py\na = 1\n```"
+            "\n"
+            "```python\n# file: shared.py\nb = 2\n```"
+        )
+        result = extract_key_code_segments(history)
+        self.assertIn("### shared.py (part 1)", result)
+        self.assertIn("### shared.py (part 2)", result)
+        self.assertIn("a = 1", result)
+        self.assertIn("b = 2", result)
+
+    def test_extract_key_code_segments_with_fallback_names(self):
+        """Falls back to snippet counters when no filename is present."""
+        history = "```python\nprint('no file')\n```\n```javascript\nconsole.log('none')\n```"
+        result = extract_key_code_segments(history)
+        self.assertIn("### snippet-1", result)
+        self.assertIn("### snippet-2", result)
+
 
 if __name__ == '__main__':
     unittest.main()

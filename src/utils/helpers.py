@@ -238,6 +238,10 @@ def extract_key_code_segments(history: Any) -> str:
         text = "\n".join(fragments)
 
     # Match probable filenames (with extensions) while avoiding URLs and pure numbers.
+    # - Negative lookahead skips http/https prefixes
+    # - Lookahead enforces at least one alphabetic character (avoids "1.5")
+    # - Allows path separators, underscores, dashes, and dots before the extension
+    # - Extension must start with a letter and contain alphanumerics
     file_pattern = re.compile(
         r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
     )
@@ -267,6 +271,8 @@ def extract_key_code_segments(history: Any) -> str:
         # Try to find explicit file markers inside the code block.
         if not file_name:
             inline_match = re.search(
+                # Support common comment styles: Python (#), C/JS (//), HTML (<!--),
+                # assembly (;), and C-style block comments (/* or /**).
                 r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+)", code
             )
             if inline_match:
