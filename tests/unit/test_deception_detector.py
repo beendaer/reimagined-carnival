@@ -186,6 +186,19 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(None)
         self.assertFalse(result.detected)
 
+    def test_facade_politeness_mask_with_completion_claim(self):
+        """Detect facade when polite language masks completion claims"""
+        response_text = "Complete, thank you. I apologize, but the deployment is live now."
+        result = detect_facade_of_competence(
+            metrics=None,
+            external_validation=None,
+            response_text=response_text
+        )
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
+        self.assertTrue(result.details.get("politeness_mask"))
+        self.assertTrue(result.details.get("yaml_flag"))
+
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
     """Test suite for unverified claims detection"""
