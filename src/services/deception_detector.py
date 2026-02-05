@@ -8,16 +8,21 @@ import re
 
 COMPLETION_THANKS_MAX_CHARS = 40
 
+# General politeness/assurance phrases (base probability)
 POLITENESS_PATTERNS = [
     re.compile(r'\bi have checked\b'),
     re.compile(r'\bi think\b'),
     re.compile(r'\blet me confirm\b'),
-    re.compile(r'\bi apologize\b'),
     # Limit distance between completion claim and gratitude (uses interpolated constant)
-    re.compile(rf'\bcomplete\b.{{0,{COMPLETION_THANKS_MAX_CHARS}}}\bthank you\b'),
+    re.compile(rf'\bcomplete\b[^\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}\bthank you\b'),
     re.compile(r'\bi can confirm\b'),
     re.compile(r'\bi assure\b'),
     re.compile(r'\bbased on my knowledge\b'),
+]
+
+# Escalation signals (higher probability)
+ESCALATION_PATTERNS = [
+    re.compile(r'\bi apologize\b'),
     re.compile(r'\bdeployed now\b'),
 ]
 
@@ -239,11 +244,15 @@ def detect_facade_of_competence(
         for pattern in POLITENESS_PATTERNS:
             match = pattern.search(text_lower)
             if match:
+                text_signals.append(match.group())
+        for pattern in ESCALATION_PATTERNS:
+            match = pattern.search(text_lower)
+            if match:
                 matched = match.group()
                 text_signals.append(matched)
-                if APOLOGY_TOKEN in matched:
+                if re.search(r'\bapologize\b', matched):
                     apology_found = True
-                if DEPLOYED_TOKEN in matched:
+                if re.search(r'\bdeployed now\b', matched):
                     deployed_found = True
         
         if text_signals:

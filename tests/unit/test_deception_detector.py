@@ -207,6 +207,7 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence({}, text=text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.75)
+        self.assertEqual(result.details.get("perfect_metrics_count"), 0)
 
     def test_facade_deployed_now_only_escalates(self):
         """Deploy-now assurance alone should escalate facade probability"""
@@ -214,6 +215,7 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence({}, text=text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.75)
+        self.assertEqual(result.details.get("perfect_metrics_count"), 0)
 
     def test_empty_metrics(self):
         """Test with empty metrics dictionary"""
