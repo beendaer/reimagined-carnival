@@ -13,6 +13,7 @@ import re
 #   (?=[A-Za-z0-9_\-./]*[A-Za-z_]) -> require at least one alphabetic character to avoid pure numbers
 #   [A-Za-z0-9_\-./]+       -> allow common path characters before the extension
 #   \.[A-Za-z][A-Za-z0-9]+  -> extension must start with a letter
+#   (plus signs are intentionally excluded to avoid matching query strings)
 FILENAME_PATTERN = re.compile(
     r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
 )
@@ -218,19 +219,16 @@ def format_report(data: Dict[str, Any], title: str = "Report") -> str:
 
 def _collect_text_fragments(value: Any) -> List[str]:
     """Recursively collect string fragments from nested conversation history."""
+    fragments: List[str] = []
     if isinstance(value, str):
-        return [value]
-    if isinstance(value, dict):
-        fragments: List[str] = []
+        fragments.append(value)
+    elif isinstance(value, dict):
         for item in value.values():
             fragments.extend(_collect_text_fragments(item))
-        return fragments
-    if isinstance(value, list):
-        fragments: List[str] = []
+    elif isinstance(value, list):
         for item in value:
             fragments.extend(_collect_text_fragments(item))
-        return fragments
-    return []
+    return fragments
 
 
 def extract_key_code_segments(history: Any) -> str:
