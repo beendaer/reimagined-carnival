@@ -10,12 +10,11 @@ import re
 # Regex patterns used for extracting file hints from conversational text.
 # FILENAME_PATTERN details:
 #   (?!https?://)           -> avoid matching full URLs
-#   (?=[A-Za-z0-9_\-./]*[A-Za-z_]) -> require at least one alphabetic character to avoid pure numbers
-#   [A-Za-z0-9_\-./]+       -> allow common path characters before the extension
+#   (?=[A-Za-z0-9_\-./+]*[A-Za-z_]) -> require at least one alphabetic character to avoid pure numbers
+#   [A-Za-z0-9_\-./+]+      -> allow common path characters (including '+') before the extension
 #   \.[A-Za-z][A-Za-z0-9]+  -> extension must start with a letter
-#   (plus signs are intentionally excluded to avoid matching query strings)
 FILENAME_PATTERN = re.compile(
-    r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
+    r"(?!https?://)(?=[A-Za-z0-9_\-./+]*[A-Za-z_])[A-Za-z0-9_\-./+]+\.[A-Za-z][A-Za-z0-9]+"
 )
 # INLINE_FILE_COMMENT_PATTERN supports:
 #   - Python style: # file: path
@@ -265,7 +264,7 @@ def extract_key_code_segments(history: Any) -> str:
     snippet_counter = 1
     for match in code_blocks:
         label = match.group("label").strip()
-        code = match.group("code").strip("\n")
+        code = match.group("code").strip()
 
         file_name = None
         language = None
