@@ -192,6 +192,7 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(None, None, text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.5)
+        # Flag signals layered probe/escalation once probability crosses the YAML 0.5 threshold
         self.assertTrue(result.details.get("layered_probe_flag"))
     
     def test_facade_apology_pivot_text(self):
@@ -438,6 +439,7 @@ class TestDetectAllPatterns(unittest.TestCase):
         results = detect_all_patterns(text)
         facade_results = [r for r in results if r.deception_type == 'facade']
         self.assertTrue(facade_results)
+        # Flag signals layered probe/escalation once probability crosses the YAML 0.5 threshold
         self.assertTrue(any(r.details.get("layered_probe_flag") for r in facade_results))
 
 
