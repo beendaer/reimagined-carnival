@@ -13,7 +13,7 @@ POLITENESS_PATTERNS = [
     re.compile(r'\bi think\b'),
     re.compile(r'\blet me confirm\b'),
     re.compile(r'\bi apologize\b'),
-    # Limit distance between completion claim and gratitude to avoid broad matches
+    # Limit distance between completion claim and gratitude (uses interpolated constant)
     re.compile(rf'\bcomplete\b.{{0,{COMPLETION_THANKS_MAX_CHARS}}}\bthank you\b'),
     re.compile(r'\bi can confirm\b'),
     re.compile(r'\bi assure\b'),

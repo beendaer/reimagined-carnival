@@ -16,7 +16,8 @@ from services.deception_detector import (
     detect_red_herring,
     detect_ultimate_ai_lie,
     detect_all_patterns,
-    DeceptionResult
+    DeceptionResult,
+    COMPLETION_THANKS_MAX_CHARS
 )
 
 
@@ -188,8 +189,8 @@ class TestFacadeDetection(unittest.TestCase):
     
     def test_facade_polite_completion_span_limit(self):
         """Completion and thanks separated by long span should not match"""
-        # 45 characters between the key terms exceeds the 40-char limit
-        text = "Complete " + ("x" * 45) + " thank you"
+        over_limit = COMPLETION_THANKS_MAX_CHARS + 5
+        text = "Complete " + ("x" * over_limit) + " thank you"
         result = detect_facade_of_competence(None, text=text)
         self.assertFalse(result.detected)
     
