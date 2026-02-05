@@ -262,7 +262,7 @@ def detect_facade_of_competence(
             matched_phrases.extend(politeness_hits + completion_hits)
             text_probability = max(text_probability, FACADE_TEXT_BASE_PROBABILITY)
         elif politeness_hits or completion_hits:
-            # Capture whichever cue fired while keeping matched phrases distinct
+            # Single polite or completion cues still signal facade risk at the base threshold
             if politeness_hits:
                 matched_phrases.extend(politeness_hits)
             if completion_hits:
