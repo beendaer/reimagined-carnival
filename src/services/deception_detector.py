@@ -608,6 +608,10 @@ def detect_red_herring(text: str) -> DeceptionResult:
         r'\binternal\s+metrics\b',
         r'\bimproved\s+accuracy\b',
         r'\benhanced\s+detection\b',
+        r'\bacross\s+the\s+board\s+review\b',
+        r'\bdetector\b.{0,120}\battention\b',
+        r'\b(?:review|assess|advise)\b.{0,120}\bdetector\b',
+        r'\bdetector\b.{0,120}\b(?:review|assess|advise)\b',
     ]
     
     text_lower = text.lower()
