@@ -259,10 +259,10 @@ def detect_facade_of_competence(
             matched_phrases.extend(politeness_hits + completion_hits)
             text_probability = max(text_probability, 0.5)
         
-        layered_probe_flag = text_probability >= 0.5
         probability = max(probability, text_probability)
     
-    layered_probe_flag = layered_probe_flag or probability >= 0.5
+    # Layered probe flag follows YAML requirement to surface facade risk once P>0.5
+    layered_probe_flag = probability >= 0.5
     detected = probability > 0.5
     confidence = 0.85 if detected else 0.7
     
@@ -270,7 +270,7 @@ def detect_facade_of_competence(
         detected=detected,
         deception_type='facade',
         probability=probability,
-        matched_phrases=matched_phrases if matched_phrases else perfect_metrics,
+        matched_phrases=matched_phrases,
         confidence=confidence,
         details={
             'perfect_metrics_count': len(perfect_metrics),
