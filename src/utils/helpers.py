@@ -4,7 +4,6 @@ Provides validation and formatting utilities for the monolith
 """
 from typing import Dict, Any, List
 from datetime import datetime
-from collections import OrderedDict
 import os
 import re
 
@@ -238,7 +237,9 @@ def extract_key_code_segments(history: Any) -> str:
         fragments = _collect_text_fragments(history)
         text = "\n".join(fragments)
 
-    file_pattern = re.compile(r"[A-Za-z0-9_\-./]+\.[A-Za-z0-9]+")
+    file_pattern = re.compile(
+        r"(?!https?://)(?=[A-Za-z0-9_\-./]*[A-Za-z_])[A-Za-z0-9_\-./]+\.[A-Za-z][A-Za-z0-9]+"
+    )
     code_blocks = list(
         re.finditer(r"```(?P<label>[^\n`]*)\n(?P<code>[\s\S]*?)```", text)
     )
@@ -264,7 +265,7 @@ def extract_key_code_segments(history: Any) -> str:
         # Try to find explicit file markers inside the code block.
         if not file_name:
             inline_match = re.search(
-                r"(?im)^(?:#|//|<!--|;)\s*file\s*:\s*([^\s]+)", code
+                r"(?im)^(?:#|//|<!--|;|/\*+)\s*file\s*:\s*([^\s]+)", code
             )
             if inline_match:
                 file_name = inline_match.group(1).strip()
@@ -283,7 +284,7 @@ def extract_key_code_segments(history: Any) -> str:
             {"file": file_name, "language": language, "code": code}
         )
 
-    grouped: "OrderedDict[str, List[Dict[str, Any]]]" = OrderedDict()
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
     for segment in segments:
         grouped.setdefault(segment["file"], []).append(segment)
 

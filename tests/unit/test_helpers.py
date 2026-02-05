@@ -224,10 +224,11 @@ class TestOtherHelpers(unittest.TestCase):
         self.assertIn("print('hello')", result)
 
     def test_extract_key_code_segments_with_labeled_block(self):
-        """Handles code fences labeled with filename."""
-        history = "```utils/helpers.py\n# file: utils/helpers.py\nvalue = 1\n```"
+        """Handles code fences labeled with language and inline filename."""
+        history = "```python\n# file: utils/helpers.py\nvalue = 1\n```"
         result = extract_key_code_segments(history)
         self.assertTrue(result.startswith("### utils/helpers.py"))
+        self.assertIn("```python", result)
         self.assertIn("value = 1", result)
 
 
