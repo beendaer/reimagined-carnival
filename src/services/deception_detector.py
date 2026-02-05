@@ -282,7 +282,10 @@ def detect_facade_of_competence(
             'perfect_metrics_count': len(perfect_metrics),
             'has_external_validation': external_validation is not None,
             'metrics': metrics or {},
-            'polite_completion_flag': polite_completion_flag
+            'polite_completion_flag': polite_completion_flag,
+            'politeness_hits': politeness_hits,
+            'apology_hits': apology_hits,
+            'completion_hits': completion_hits
         }
     )
 
