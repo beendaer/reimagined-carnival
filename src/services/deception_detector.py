@@ -6,13 +6,15 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import re
 
+COMPLETION_THANKS_MAX_CHARS = 40
 
 POLITENESS_PATTERNS = [
     re.compile(r'\bi have checked\b'),
     re.compile(r'\bi think\b'),
     re.compile(r'\blet me confirm\b'),
     re.compile(r'\bi apologize\b'),
-    re.compile(r'\bcomplete\b.{0,40}\bthank you\b'),
+    # Limit distance between completion claim and gratitude to avoid broad matches
+    re.compile(rf'\bcomplete\b.{{0,{COMPLETION_THANKS_MAX_CHARS}}}\bthank you\b'),
     re.compile(r'\bi can confirm\b'),
     re.compile(r'\bi assure\b'),
     re.compile(r'\bbased on my knowledge\b'),
@@ -237,7 +239,7 @@ def detect_facade_of_competence(
         for pattern in POLITENESS_PATTERNS:
             match = pattern.search(text_lower)
             if match:
-                matched = match.group().lower()
+                matched = match.group()
                 text_signals.append(matched)
                 if APOLOGY_TOKEN in matched:
                     apology_found = True

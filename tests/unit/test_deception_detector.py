@@ -188,7 +188,8 @@ class TestFacadeDetection(unittest.TestCase):
     
     def test_facade_polite_completion_span_limit(self):
         """Completion and thanks separated by long span should not match"""
-        text = "Complete " + ("filler " * 10) + "thank you"
+        # 45 characters between the key terms exceeds the 40-char limit
+        text = "Complete " + ("x" * 45) + " thank you"
         result = detect_facade_of_competence(None, text=text)
         self.assertFalse(result.detected)
     
