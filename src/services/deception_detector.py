@@ -17,7 +17,7 @@ POLITENESS_REGEXES = [
     re.compile(r'\bthank you\b'),
     re.compile(r'\bthanks\b'),
     re.compile(r'\bi apologize\b'),
-    re.compile(r"\bi'm sorry\b"),
+    re.compile(r'\bi\'m sorry\b'),
     re.compile(r'\bim sorry\b'),
     re.compile(r'\bi am sorry\b'),
     re.compile(r'\bi appreciate\b')
@@ -246,6 +246,7 @@ def detect_facade_of_competence(
         politeness_hits = set()
         completion_hits = set()
 
+        # Collect all matched phrases for audit visibility (no early exit)
         for pattern in POLITENESS_REGEXES:
             match = pattern.search(text_lower)
             if match:
@@ -258,8 +259,8 @@ def detect_facade_of_competence(
                 completion_hits.add(match.group())
 
         if politeness_hits and completion_hits:
-            matched_phrases.extend(politeness_hits)
-            matched_phrases.extend(completion_hits)
+            matched_phrases.extend(sorted(politeness_hits))
+            matched_phrases.extend(sorted(completion_hits))
             probability = max(probability, POLITENESS_MASK_PROBABILITY)
         elif politeness_hits:
             # Polite framing alone is a weaker signal without completion claims
