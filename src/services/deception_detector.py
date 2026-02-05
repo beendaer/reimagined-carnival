@@ -12,7 +12,7 @@ POLITENESS_PATTERNS = [
     re.compile(r'\bi think\b'),
     re.compile(r'\blet me confirm\b'),
     re.compile(r'\bi apologize\b'),
-    re.compile(r'\bcomplete,? thank you\b'),
+    re.compile(r'\bcomplete\b.*?\bthank you\b'),
     re.compile(r'\bi can confirm\b'),
     re.compile(r'\bi assure\b'),
     re.compile(r'\bbased on my knowledge\b'),
@@ -232,16 +232,22 @@ def detect_facade_of_competence(
     # Politeness/assurance masking patterns in text
     if text:
         text_lower = text.lower()
+        apology_found = False
+        deployed_found = False
         for pattern in POLITENESS_PATTERNS:
             match = pattern.search(text_lower)
             if match:
                 text_signals.append(match.group())
+                if pattern.pattern.startswith(r'\bi apologize'):
+                    apology_found = True
+                if pattern.pattern.endswith(r'deployed now\b'):
+                    deployed_found = True
         
         if text_signals:
             # Layered probe: politeness masks count as facade signals
             probability = max(probability, TEXT_BASE_PROBABILITY)
             # Double-down apology combined with completion claim is stronger
-            if any(APOLOGY_TOKEN in sig or DEPLOYED_TOKEN in sig for sig in text_signals):
+            if apology_found or deployed_found:
                 probability = max(probability, TEXT_ESCALATED_PROBABILITY)
     
     detected = probability > 0.6
