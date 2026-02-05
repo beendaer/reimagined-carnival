@@ -185,6 +185,23 @@ class TestFacadeDetection(unittest.TestCase):
         """Test with None metrics"""
         result = detect_facade_of_competence(None)
         self.assertFalse(result.detected)
+    
+    def test_facade_politeness_mask_text_only(self):
+        """Detect polite/apology assurance masking completion claims"""
+        text = "Complete, thank you. I apologize, but the artifact is produced and deployed now."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.5)
+        self.assertTrue(result.details.get("layered_probe_flag"))
+        self.assertGreater(result.details.get("text_pattern_count", 0), 0)
+        matched_text = " ".join(result.matched_phrases).lower()
+        self.assertIn("thank you", matched_text)
+        self.assertIn("i apologize", matched_text)
+        expected_deploy_phrases = {"deployed now", "deploy now", "artifact is produced", "ready now", "fully deployed", "fully operational"}
+        self.assertTrue(
+            any(expected in matched_text for expected in expected_deploy_phrases),
+            f"Expected one of {expected_deploy_phrases} in matched text: {matched_text}"
+        )
 
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
@@ -416,6 +433,15 @@ class TestDetectAllPatterns(unittest.TestCase):
         detected = [r for r in results if r.detected]
         # Allow some patterns to have low-confidence detections
         self.assertLess(len(detected), len(results) / 2)
+    
+    def test_detect_all_facade_without_metrics(self):
+        """Facade detection should run even without metrics context using text cues"""
+        text = "Complete, thank you. I apologize, but it is deployed now."
+        results = detect_all_patterns(text)
+        facade_results = [r for r in results if r.deception_type == 'facade']
+        self.assertTrue(facade_results, "Facade detection should be invoked")
+        self.assertTrue(any(r.detected for r in facade_results))
+        self.assertTrue(any(r.details.get("layered_probe_flag") for r in facade_results))
 
 
 class TestDeceptionResult(unittest.TestCase):
