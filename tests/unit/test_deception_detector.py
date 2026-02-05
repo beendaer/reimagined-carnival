@@ -186,9 +186,29 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertIn("complete", matched)
         self.assertIn("thank you", matched)
     
+    def test_facade_polite_completion_span_limit(self):
+        """Completion and thanks separated by long span should not match"""
+        text = "Complete " + ("filler " * 10) + "thank you"
+        result = detect_facade_of_competence(None, text=text)
+        self.assertFalse(result.detected)
+    
     def test_facade_apology_with_deploy_now(self):
         """Apology plus deploy-now assurance should raise probability"""
         text = "I apologize, but the artifact is produced and it is deployed now."
+        result = detect_facade_of_competence({}, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.75)
+
+    def test_facade_apology_only_escalates(self):
+        """Apology alone should escalate facade probability"""
+        text = "I apologize for the delay"
+        result = detect_facade_of_competence({}, text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.75)
+
+    def test_facade_deployed_now_only_escalates(self):
+        """Deploy-now assurance alone should escalate facade probability"""
+        text = "It is deployed now and should be ready"
         result = detect_facade_of_competence({}, text=text)
         self.assertTrue(result.detected)
         self.assertGreaterEqual(result.probability, 0.75)

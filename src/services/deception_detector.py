@@ -12,7 +12,7 @@ POLITENESS_PATTERNS = [
     re.compile(r'\bi think\b'),
     re.compile(r'\blet me confirm\b'),
     re.compile(r'\bi apologize\b'),
-    re.compile(r'\bcomplete\b.{0,40}?\bthank you\b'),
+    re.compile(r'\bcomplete\b.{0,40}\bthank you\b'),
     re.compile(r'\bi can confirm\b'),
     re.compile(r'\bi assure\b'),
     re.compile(r'\bbased on my knowledge\b'),
@@ -237,7 +237,7 @@ def detect_facade_of_competence(
         for pattern in POLITENESS_PATTERNS:
             match = pattern.search(text_lower)
             if match:
-                matched = match.group()
+                matched = match.group().lower()
                 text_signals.append(matched)
                 if APOLOGY_TOKEN in matched:
                     apology_found = True
