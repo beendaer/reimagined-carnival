@@ -42,12 +42,11 @@ class RawProductData(BaseModel):
             score = value.get(key)
             if not isinstance(score, (int, float)):
                 raise ValueError(
-                    "Attributes must include numeric reliability, performance, "
-                    "and efficiency scores"
+                    f'Attribute "{key}" must be a numeric value'
                 )
             if not 0.0 <= score <= 1.0:
                 raise ValueError(
-                    "Score values must be between 0.0 and 1.0"
+                    f'Attribute "{key}" value {score} must be between 0.0 and 1.0'
                 )
         return value
 

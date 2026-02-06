@@ -11,6 +11,7 @@ downloads/
 eggs/
 .eggs/
 lib/*
+# Allow tracked category config under lib/data-ingestion
 !lib/data-ingestion/
 !lib/data-ingestion/**
 lib64/
