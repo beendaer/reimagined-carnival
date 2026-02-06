@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Security, Depends, Form
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
 from src.main import validate_input
+from src.services.product_ingestion import evaluate_products
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -216,3 +217,22 @@ def validate_text(request: dict):
         return {"validation": result}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/process-products", dependencies=[Depends(verify_api_key)])
+def process_products(request: dict):
+    """Process RawProductData entries for BBFB evaluation."""
+    if not isinstance(request, dict):
+        raise HTTPException(
+            status_code=400,
+            detail="Products payload must be a JSON object"
+        )
+
+    products = request.get("products")
+    if not isinstance(products, list):
+        raise HTTPException(
+            status_code=400,
+            detail="Products payload must include a list under 'products'"
+        )
+
+    return evaluate_products(products)
