@@ -86,7 +86,7 @@ def validate_raw_product(product: Dict[str, Any]) -> List[str]:
 
 
 def calculate_bbfb_score(product: Dict[str, Any]) -> Optional[float]:
-    """Calculate a basic BBFB score from available normalized metrics."""
+    """Calculate a basic BBFB score from product attributes."""
     if not isinstance(product, dict):
         return None
 

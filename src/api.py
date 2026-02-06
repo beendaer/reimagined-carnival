@@ -38,6 +38,8 @@ class RawProductData(BaseModel):
     @classmethod
     def validate_attributes(cls, value: Dict[str, Any]) -> Dict[str, Any]:
         for key in SCORE_FIELDS:
+            if key not in value:
+                continue
             score = value.get(key)
             if not isinstance(score, (int, float)):
                 raise ValueError(
