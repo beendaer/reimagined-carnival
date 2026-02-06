@@ -44,6 +44,14 @@ class TestValidateInput(unittest.TestCase):
         self.assertLess(result["coherence_score"], 0.5)
         self.assertTrue(result["noise_detected"])
         self.assertFalse(result["validation_passed"])
+
+    def test_validate_repetition_noise(self):
+        """Test validation of chaotic repetition in input"""
+        text = "Oops tissuetissue stop it im not a dickheaddickhead selfself"
+        result = validate_input(text)
+
+        self.assertTrue(result["noise_detected"])
+        self.assertIn("Repetitive token sequences detected", result["details"]["findings"])
     
     def test_validate_with_context(self):
         """Test validation with context parameter"""

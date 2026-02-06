@@ -4,13 +4,17 @@ Provides authenticated API endpoints for text validation
 """
 import hmac
 import json
+import logging
 import os
+import threading
 from html import escape
-from typing import Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Security, Depends, Form
+from typing import Optional, Dict, Any, List
+from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field, field_validator
 from src.main import validate_input
+from src.services.product_ingestion import evaluate_products, SCORE_FIELDS
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -22,6 +26,48 @@ app = FastAPI(
 # API Key authentication
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+_OPEN_ACCESS_WARNING_EVENT = threading.Event()
+OPEN_ACCESS_WARNING_MESSAGE = (
+    "API_KEY is not configured; authentication is disabled for API requests."
+)
+
+
+def is_open_access_enabled() -> bool:
+    """Return True when ALLOW_OPEN_ACCESS is set to 1/true/yes/on (case-insensitive)."""
+    return os.getenv("ALLOW_OPEN_ACCESS", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def reset_open_access_warning() -> None:
+    """Reset the open access warning state (testing utility)."""
+    _OPEN_ACCESS_WARNING_EVENT.clear()
+
+
+class RawProductData(BaseModel):
+    """Raw product payload for BBFB processing."""
+    make: str = Field(..., min_length=1)
+    model: str = Field(..., min_length=1)
+    category: str = Field(..., min_length=1)
+    price: float = Field(..., gt=0)
+    attributes: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("attributes")
+    @classmethod
+    def validate_attributes(cls, value: Dict[str, Any]) -> Dict[str, Any]:
+        for key in SCORE_FIELDS:
+            if key not in value:
+                continue
+            score = value.get(key)
+            if not isinstance(score, (int, float)):
+                raise ValueError(
+                    f'Attribute "{key}" must be a numeric value'
+                )
+            if not 0.0 <= score <= 1.0:
+                raise ValueError(
+                    f'Attribute "{key}" value {score} must be between 0.0 and 1.0'
+                )
+        return value
+
+
 
 
 def validate_api_key_value(api_key: Optional[str]) -> None:
@@ -29,6 +75,11 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     expected_key = os.getenv("API_KEY")
 
     if not expected_key:
+        if is_open_access_enabled():
+            if not _OPEN_ACCESS_WARNING_EVENT.is_set():
+                logging.warning(OPEN_ACCESS_WARNING_MESSAGE)
+                _OPEN_ACCESS_WARNING_EVENT.set()
+            return
         raise HTTPException(
             status_code=500,
             detail="API key not configured on server"
@@ -222,3 +273,19 @@ def validate_text(request: dict):
         return {"validation": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/process-products", dependencies=[Depends(verify_api_key)])
+def process_products(
+    request: List[RawProductData] = Body(...)
+):
+    """
+    Process RawProductData entries for BBFB evaluation.
+
+    Accepts a JSON array of RawProductData objects. Returns a summary plus
+    per-product results with missing field checks and a basic BBFB score.
+    """
+    products = [product.model_dump() for product in request]
+    return evaluate_products(products)
