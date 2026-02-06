@@ -238,7 +238,13 @@ def validate_text(request: dict):
 def process_products(
     request: Union[List[RawProductData], ProductPayload] = Body(...)
 ):
-    """Process RawProductData entries for BBFB evaluation."""
+    """
+    Process RawProductData entries for BBFB evaluation.
+
+    Accepts either a JSON array of RawProductData objects or a wrapper
+    object containing a "products" list. Returns a summary plus per-product
+    results with missing field checks and a basic BBFB score.
+    """
     if isinstance(request, list):
         products = [product.model_dump() for product in request]
     else:
