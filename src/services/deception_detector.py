@@ -50,7 +50,8 @@ def _find_pattern_matches(patterns: List[str], text_lower: str) -> List[str]:
     return matches
 COMPLETION_THANKS_MAX_CHARS = 40
 COMPLETION_THANKS_PATTERN = re.compile(
-    f"(?P<completion>\\bcomplete\\b)[^\\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}(?P<thanks>\\bthank you\\b)"
+    r"(?P<completion>\bcomplete\b)[^\n]{0,%d}(?P<thanks>\bthank you\b)"
+    % COMPLETION_THANKS_MAX_CHARS
 )
 FACADE_APOLOGY_PATTERNS = [
     re.compile(r'\bi apologize\b'),
@@ -277,7 +278,7 @@ def detect_facade_of_competence(
         DeceptionResult indicating whether facade signals were detected.
 
     Example:
-        >>> detect_facade_of_competence({'precision': 1.0}, text=\"Complete, thank you\")
+        >>> detect_facade_of_competence({'precision': 1.0}, text="Complete, thank you")
         DeceptionResult(...)
     """
     analysis_text = text if text is not None else response_text
@@ -370,7 +371,7 @@ def detect_facade_of_competence(
     matched_phrases.extend(text_signals)
     matched_phrases = list(dict.fromkeys(matched_phrases))
     text_signal_count = len(set(text_signals))
-    text_pattern_count = text_signal_count  # legacy alias for downstream consumers
+    text_pattern_count = text_signal_count  # legacy alias for tests/clients expecting text_pattern_count
 
     detected = probability >= FACADE_DETECTION_THRESHOLD
     confidence = 0.85 if detected else 0.7
