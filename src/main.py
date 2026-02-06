@@ -38,6 +38,7 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     if not isinstance(text, str):
         raise ValueError("Input text must be a string")
 
+    
     # Calculate coherence score based on text characteristics
     coherence_score = 0.0
     
