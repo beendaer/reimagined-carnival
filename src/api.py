@@ -25,6 +25,9 @@ app = FastAPI(
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 _OPEN_ACCESS_WARNING_EVENT = threading.Event()
+OPEN_ACCESS_WARNING_MESSAGE = (
+    "API_KEY is not configured; authentication is disabled for API requests."
+)
 
 
 def is_open_access_enabled() -> bool:
@@ -44,9 +47,7 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     if not expected_key:
         if is_open_access_enabled():
             if not _OPEN_ACCESS_WARNING_EVENT.is_set():
-                logging.warning(
-                    "API_KEY is not configured; authentication is disabled for API requests."
-                )
+                logging.warning(OPEN_ACCESS_WARNING_MESSAGE)
                 _OPEN_ACCESS_WARNING_EVENT.set()
             return
         raise HTTPException(

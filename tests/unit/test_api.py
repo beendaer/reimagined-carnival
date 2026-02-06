@@ -23,6 +23,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.client = TestClient(app)
         # Set a test API key
         self.test_api_key = "test_api_key_12345"
+        api.reset_open_access_warning()
     
     def test_root_endpoint(self):
         """Test root endpoint returns service information"""
@@ -51,7 +52,6 @@ class TestAPIEndpoints(unittest.TestCase):
     @patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True)
     def test_gui_post_endpoint_with_open_access(self):
         """Test GUI form submission shows results"""
-        api.reset_open_access_warning()
         with self.assertLogs(level="WARNING") as log:
             response = self.client.post(
                 "/gui",
@@ -75,7 +75,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("Validation Output", response.text)
         log_entries = [
             entry for entry in log.output
-            if "API_KEY is not configured; authentication is disabled for API requests." in entry
+            if api.OPEN_ACCESS_WARNING_MESSAGE in entry
         ]
         self.assertEqual(len(log_entries), 1)
 
