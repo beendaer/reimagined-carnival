@@ -10,8 +10,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-!lib/
+lib/*
 !lib/data-ingestion/
 !lib/data-ingestion/**
 lib64/
