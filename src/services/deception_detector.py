@@ -50,21 +50,12 @@ def _find_pattern_matches(patterns: List[str], text_lower: str) -> List[str]:
     return matches
 COMPLETION_THANKS_MAX_CHARS = 40
 COMPLETION_THANKS_PATTERN = re.compile(
-    rf'(\bcomplete\b)[^\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}(\bthank you\b)'
+    f"(\\bcomplete\\b)[^\\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}(\\bthank you\\b)"
 )
 FACADE_APOLOGY_PATTERNS = [
     re.compile(r'\bi apologize\b'),
     re.compile(r'\bi apologise\b'),
     re.compile(r'\bsorry\b'),
-]
-FACADE_COMPLETION_TEXT_PATTERNS = [
-    re.compile(r'\bcomplete\b'),
-    re.compile(r'\bcompleted\b'),
-    re.compile(r'\bdeploy(?:ed)? now\b'),
-    re.compile(r'\bfully deployed\b'),
-    re.compile(r'\bfully operational\b'),
-    re.compile(r'\bartifact is produced\b'),
-    re.compile(r'\bready now\b'),
 ]
 FACADE_STRONG_COMPLETION_PATTERNS = [
     re.compile(r'\bdeploy(?:ed)? now\b'),
@@ -72,6 +63,11 @@ FACADE_STRONG_COMPLETION_PATTERNS = [
     re.compile(r'\bfully operational\b'),
     re.compile(r'\bartifact is produced\b'),
     re.compile(r'\bready now\b'),
+]
+FACADE_COMPLETION_TEXT_PATTERNS = [
+    re.compile(r'\bcomplete\b'),
+    re.compile(r'\bcompleted\b'),
+    *FACADE_STRONG_COMPLETION_PATTERNS,
 ]
 FACADE_APOLOGY_PIVOT_PATTERN = re.compile(r'\b(?:i apologize|i apologise|sorry)[, ]+but\b')
 
@@ -351,6 +347,7 @@ def detect_facade_of_competence(
             matched_phrases.append('apology_pivot')
 
         text_signals.extend(politeness_hits + apology_hits + completion_hits)
+        text_signals = list(dict.fromkeys(text_signals))
 
         text_probability = 0.0
         if any(pattern.search(text_lower) for pattern in FACADE_STRONG_COMPLETION_PATTERNS):
