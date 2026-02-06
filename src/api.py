@@ -12,7 +12,7 @@ from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, field_validator
 from src.main import validate_input
-from src.services.product_ingestion import evaluate_products
+from src.services.product_ingestion import evaluate_products, SCORE_FIELDS
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -37,8 +37,7 @@ class RawProductData(BaseModel):
     @field_validator("attributes")
     @classmethod
     def validate_attributes(cls, value: Dict[str, Any]) -> Dict[str, Any]:
-        required_scores = ("reliability", "performance", "efficiency")
-        for key in required_scores:
+        for key in SCORE_FIELDS:
             score = value.get(key)
             if not isinstance(score, (int, float)):
                 raise ValueError(

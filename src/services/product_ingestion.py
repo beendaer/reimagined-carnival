@@ -32,7 +32,7 @@ def parse_product_name(name: str) -> Tuple[str, str]:
         raise ValueError("Product name must include both make and model")
 
     make = parts[0]
-    model = " ".join(parts[1:]).strip()
+    model = " ".join(parts[1:])
     return make, model
 
 
