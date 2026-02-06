@@ -314,6 +314,21 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertIn('apology_pivot', result.matched_phrases)
         self.assertTrue(result.details.get('layered_probe_flag'))
 
+    def test_facade_politeness_mask_without_metrics(self):
+        """Text-only polite completion should trigger facade detection"""
+        text = "Complete, thank you for waiting on the deploy"
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertGreater(result.probability, 0.6)
+        self.assertTrue(result.details.get("layered_probe_flag"))
+
+    def test_facade_apology_assurance_pivot(self):
+        """Apology plus assurance without proof should be flagged"""
+        text = "I apologize, but it's deployed now and fully ready"
+        result = detect_facade_of_competence(None, None, text)
+        self.assertTrue(result.detected)
+        self.assertIn('politeness_mask_detected', result.details)
+
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
     """Test suite for unverified claims detection"""
