@@ -99,7 +99,8 @@ Applies multiple validation rules to assess quality.
 1. **Statement Length Rule**: 5-1000 characters
 2. **Category Validity Rule**: Non-empty category
 3. **Tag Coherence Rule**: Tags align with category
-4. **Timestamp Validity Rule**: Valid timestamp present
+4. **Repetition Noise Rule**: Repeated token sequences reduce coherence
+5. **Timestamp Validity Rule**: Valid timestamp present
 
 Each rule returns:
 - `passed`: Boolean result

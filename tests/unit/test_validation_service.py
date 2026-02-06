@@ -125,6 +125,24 @@ class TestValidationService(unittest.TestCase):
         self.assertEqual(result.fact_id, 'test_003')
         # Should have lower confidence due to missing tags
         self.assertGreater(len(result.findings), 0)
+
+    def test_evaluate_coherence_repetition_noise(self):
+        """Test evaluating coherence for repeated token sequences"""
+        repetition_fact = Fact(
+            id="test_005",
+            category="testing",
+            statement="Oops tissuetissue stop it im not a dickheaddickhead selfself",
+            verified=False,
+            timestamp=datetime.now(),
+            tags=["testing"]
+        )
+
+        result = self.validation_service.evaluate_coherence(repetition_fact)
+
+        self.assertIn(result.status, [ValidationStatus.SUSPICIOUS, ValidationStatus.NOISE])
+        self.assertTrue(
+            any("Repetitive token sequences" in finding for finding in result.findings)
+        )
     
     def test_validate_all_facts(self):
         """Test validating all facts in registry"""

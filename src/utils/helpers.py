@@ -25,6 +25,8 @@ FILENAME_PATTERN = re.compile(
 INLINE_FILE_COMMENT_PATTERN = re.compile(
     r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+?)(?=\s*(?:\*/|-->|$))"
 )
+REPEATED_COMPOUND_PATTERN = re.compile(r"\b([a-z]{3,30})\1+\b", re.IGNORECASE)
+REPEATED_WORD_PATTERN = re.compile(r"\b([a-z]{2,30})(?:\s+\1){2,}\b", re.IGNORECASE)
 
 
 def validate_third_party_framework(config: Any) -> Dict[str, Any]:
@@ -318,3 +320,30 @@ def extract_key_code_segments(history: Any) -> str:
             parts.append("")  # spacer
 
     return "\n".join(parts).rstrip()
+
+
+def analyze_repetition_noise(text: Any) -> Dict[str, Any]:
+    """Analyze text for repeated token sequences that signal chaotic input."""
+    if not isinstance(text, str) or not text.strip():
+        return {
+            "has_repetition": False,
+            "repetition_count": 0,
+            "matched_phrases": []
+        }
+
+    compound_matches = [
+        match.group(0).lower()
+        for match in REPEATED_COMPOUND_PATTERN.finditer(text)
+    ]
+    word_run_matches = [
+        match.group(0).lower()
+        for match in REPEATED_WORD_PATTERN.finditer(text)
+    ]
+    matched_phrases = list(dict.fromkeys(compound_matches + word_run_matches))
+    repetition_count = len(matched_phrases)
+
+    return {
+        "has_repetition": repetition_count > 0,
+        "repetition_count": repetition_count,
+        "matched_phrases": matched_phrases
+    }
