@@ -10,7 +10,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/*
+# Allow tracked category config under lib/data-ingestion
+!lib/data-ingestion/
+!lib/data-ingestion/**
 lib64/
 parts/
 sdist/

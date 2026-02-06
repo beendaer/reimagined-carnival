@@ -6,11 +6,13 @@ import hmac
 import json
 import os
 from html import escape
-from typing import Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Security, Depends, Form
+from typing import Optional, Dict, Any, List
+from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field, field_validator
 from src.main import validate_input
+from src.services.product_ingestion import evaluate_products, SCORE_FIELDS
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -22,6 +24,34 @@ app = FastAPI(
 # API Key authentication
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+
+class RawProductData(BaseModel):
+    """Raw product payload for BBFB processing."""
+    make: str = Field(..., min_length=1)
+    model: str = Field(..., min_length=1)
+    category: str = Field(..., min_length=1)
+    price: float = Field(..., gt=0)
+    attributes: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("attributes")
+    @classmethod
+    def validate_attributes(cls, value: Dict[str, Any]) -> Dict[str, Any]:
+        for key in SCORE_FIELDS:
+            if key not in value:
+                continue
+            score = value.get(key)
+            if not isinstance(score, (int, float)):
+                raise ValueError(
+                    f'Attribute "{key}" must be a numeric value'
+                )
+            if not 0.0 <= score <= 1.0:
+                raise ValueError(
+                    f'Attribute "{key}" value {score} must be between 0.0 and 1.0'
+                )
+        return value
+
+
 
 
 def validate_api_key_value(api_key: Optional[str]) -> None:
@@ -216,3 +246,17 @@ def validate_text(request: dict):
         return {"validation": result}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/process-products", dependencies=[Depends(verify_api_key)])
+def process_products(
+    request: List[RawProductData] = Body(...)
+):
+    """
+    Process RawProductData entries for BBFB evaluation.
+
+    Accepts a JSON array of RawProductData objects. Returns a summary plus
+    per-product results with missing field checks and a basic BBFB score.
+    """
+    products = [product.model_dump() for product in request]
+    return evaluate_products(products)

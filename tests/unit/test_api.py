@@ -184,6 +184,32 @@ class TestAPIEndpoints(unittest.TestCase):
             self.assertIn("detail", data)
             self.assertEqual(data["detail"], "API key not configured on server")
 
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_process_products_endpoint(self):
+        """Test processing RawProductData payloads."""
+        response = self.client.post(
+            "/api/process-products",
+            json=[
+                {
+                    "make": "Haier",
+                    "model": "HWF75AW3",
+                    "category": "washing_machine",
+                    "price": 454.0,
+                    "attributes": {
+                        "reliability": 0.94,
+                        "performance": 0.90,
+                        "efficiency": 0.90
+                    }
+                }
+            ],
+            headers={"x-api-key": "test_api_key_12345"}
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["summary"]["processed"], 1)
+        self.assertEqual(data["summary"]["valid"], 1)
+        self.assertAlmostEqual(data["results"][0]["bbfb_score"], 0.913, places=3)
+
 
 if __name__ == "__main__":
     unittest.main()

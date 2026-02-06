@@ -54,6 +54,19 @@ python -m unittest discover tests/unit
 python -m unittest discover tests/integration
 ```
 
+### Process Product Data
+
+Washing machine extraction data is stored in `data/extracted-washing-machines.json`.
+The converted RawProductData payload is available in `data/raw-washing-machines.json`
+and can be submitted to the API endpoint:
+
+```bash
+curl -X POST http://localhost:8000/api/process-products \
+  -H "x-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @data/raw-washing-machines.json
+```
+
 ## Project Structure
 
 ```
