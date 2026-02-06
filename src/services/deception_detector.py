@@ -50,7 +50,7 @@ def _find_pattern_matches(patterns: List[str], text_lower: str) -> List[str]:
     return matches
 COMPLETION_THANKS_MAX_CHARS = 40
 COMPLETION_THANKS_PATTERN = re.compile(
-    rf"(?P<completion>\bcomplete\b)[^\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}(?P<thanks>\bthank you\b)"
+    f"(?P<completion>\\bcomplete\\b)[^\\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}(?P<thanks>\\bthank you\\b)"
 )
 FACADE_APOLOGY_PATTERNS = [
     re.compile(r'\bi apologize\b'),
@@ -64,7 +64,6 @@ FACADE_STRONG_COMPLETION_PATTERNS = [
     re.compile(r'\bartifact is produced\b'),
     re.compile(r'\bready now\b'),
 ]
-FACADE_STRONG_COMPLETION_PATTERN_SET = frozenset(FACADE_STRONG_COMPLETION_PATTERNS)
 FACADE_COMPLETION_TEXT_PATTERNS = [
     re.compile(r'\bcomplete\b'),
     re.compile(r'\bcompleted\b'),
@@ -344,7 +343,7 @@ def detect_facade_of_competence(
             match = pattern.search(text_lower)
             if match:
                 completion_hits.append(match.group())
-                if pattern in FACADE_STRONG_COMPLETION_PATTERN_SET:
+                if pattern in FACADE_STRONG_COMPLETION_PATTERNS:
                     strong_completion_hit = True
 
         if FACADE_APOLOGY_PIVOT_PATTERN.search(text_lower):
