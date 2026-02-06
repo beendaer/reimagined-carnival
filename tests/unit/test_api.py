@@ -77,6 +77,7 @@ class TestAPIEndpoints(unittest.TestCase):
             entry for entry in log.output
             if api.OPEN_ACCESS_WARNING_MESSAGE in entry
         ]
+        self.assertEqual(len(log.output), 1)
         self.assertEqual(len(log_entries), 1)
 
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
@@ -193,19 +194,26 @@ class TestAPIEndpoints(unittest.TestCase):
         """Test that endpoint accepts requests when open access is enabled"""
         # Ensure API_KEY is not set
         with patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True):
-            response = self.client.post(
-                "/validate",
-                json={"input_text": "Test", "context": "testing"},
-                headers={"x-api-key": "invalid_key"}
-            )
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertIn("validation", data)
-            response = self.client.post(
-                "/validate",
-                json={"input_text": "Test", "context": "testing"}
-            )
-            self.assertEqual(response.status_code, 200)
+            with self.assertLogs(level="WARNING") as log:
+                response = self.client.post(
+                    "/validate",
+                    json={"input_text": "Test", "context": "testing"},
+                    headers={"x-api-key": "invalid_key"}
+                )
+                self.assertEqual(response.status_code, 200)
+                data = response.json()
+                self.assertIn("validation", data)
+                response = self.client.post(
+                    "/validate",
+                    json={"input_text": "Test", "context": "testing"}
+                )
+                self.assertEqual(response.status_code, 200)
+            log_entries = [
+                entry for entry in log.output
+                if api.OPEN_ACCESS_WARNING_MESSAGE in entry
+            ]
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log_entries), 1)
 
 
 if __name__ == "__main__":

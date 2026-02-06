@@ -31,7 +31,7 @@ OPEN_ACCESS_WARNING_MESSAGE = (
 
 
 def is_open_access_enabled() -> bool:
-    """Return True when unauthenticated access is explicitly enabled."""
+    """Return True when ALLOW_OPEN_ACCESS is set to 1/true/yes/on (case-insensitive)."""
     return os.getenv("ALLOW_OPEN_ACCESS", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
