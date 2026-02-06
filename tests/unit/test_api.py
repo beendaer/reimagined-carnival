@@ -10,6 +10,7 @@ from unittest.mock import patch
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
+import api
 from fastapi.testclient import TestClient
 from api import app
 
@@ -50,17 +51,33 @@ class TestAPIEndpoints(unittest.TestCase):
     @patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True)
     def test_gui_post_endpoint_with_open_access(self):
         """Test GUI form submission shows results"""
-        response = self.client.post(
-            "/gui",
-            data={
-                "input_text": "This is a coherent test statement",
-                "context": "testing",
-                "api_key": "test_api_key_12345"
-            }
-        )
+        api._OPEN_ACCESS_WARNING_LOGGED.clear()
+        with self.assertLogs(level="ERROR") as log:
+            response = self.client.post(
+                "/gui",
+                data={
+                    "input_text": "This is a coherent test statement",
+                    "context": "testing",
+                    "api_key": "test_api_key_12345"
+                }
+            )
+            response_followup = self.client.post(
+                "/gui",
+                data={
+                    "input_text": "This is a coherent test statement",
+                    "context": "testing",
+                    "api_key": "test_api_key_12345"
+                }
+            )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_followup.status_code, 200)
         self.assertIn("Action Results", response.text)
         self.assertIn("Validation Output", response.text)
+        warning_entries = [
+            entry for entry in log.output
+            if "API_KEY is not configured; authentication is disabled for API requests." in entry
+        ]
+        self.assertEqual(len(warning_entries), 1)
 
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_gui_post_endpoint_with_api_key(self):
