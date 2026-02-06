@@ -6,10 +6,11 @@ import hmac
 import json
 import os
 from html import escape
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Union
 from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
 from src.main import validate_input
 from src.services.product_ingestion import evaluate_products
 
@@ -23,6 +24,20 @@ app = FastAPI(
 # API Key authentication
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+
+class RawProductData(BaseModel):
+    """Raw product payload for BBFB processing."""
+    make: str
+    model: str
+    category: str
+    price: float
+    attributes: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ProductPayload(BaseModel):
+    """Container for multiple RawProductData entries."""
+    products: List[RawProductData]
 
 
 def validate_api_key_value(api_key: Optional[str]) -> None:
@@ -220,21 +235,13 @@ def validate_text(request: dict):
 
 
 @app.post("/api/process-products", dependencies=[Depends(verify_api_key)])
-def process_products(request: Any = Body(...)):
+def process_products(
+    request: Union[List[RawProductData], ProductPayload] = Body(...)
+):
     """Process RawProductData entries for BBFB evaluation."""
     if isinstance(request, list):
-        products = request
-    elif isinstance(request, dict):
-        products = request.get("products")
+        products = [product.model_dump() for product in request]
     else:
-        raise HTTPException(
-            status_code=400,
-            detail="Products payload must be a JSON object or list"
-        )
-    if not isinstance(products, list):
-        raise HTTPException(
-            status_code=400,
-            detail="Products payload must include a list under 'products'"
-        )
+        products = [product.model_dump() for product in request.products]
 
     return evaluate_products(products)

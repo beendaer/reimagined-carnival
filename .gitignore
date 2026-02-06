@@ -13,7 +13,7 @@ eggs/
 lib/
 !lib/
 !lib/data-ingestion/
-!lib/data-ingestion/category-configs.ts
+!lib/data-ingestion/**
 lib64/
 parts/
 sdist/
