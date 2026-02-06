@@ -4,7 +4,9 @@ Provides authenticated API endpoints for text validation
 """
 import hmac
 import json
+import logging
 import os
+import threading
 from html import escape
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
@@ -24,6 +26,20 @@ app = FastAPI(
 # API Key authentication
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+_OPEN_ACCESS_WARNING_EVENT = threading.Event()
+OPEN_ACCESS_WARNING_MESSAGE = (
+    "API_KEY is not configured; authentication is disabled for API requests."
+)
+
+
+def is_open_access_enabled() -> bool:
+    """Return True when ALLOW_OPEN_ACCESS is set to 1/true/yes/on (case-insensitive)."""
+    return os.getenv("ALLOW_OPEN_ACCESS", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def reset_open_access_warning() -> None:
+    """Reset the open access warning state (testing utility)."""
+    _OPEN_ACCESS_WARNING_EVENT.clear()
 
 
 class RawProductData(BaseModel):
@@ -59,6 +75,11 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     expected_key = os.getenv("API_KEY")
 
     if not expected_key:
+        if is_open_access_enabled():
+            if not _OPEN_ACCESS_WARNING_EVENT.is_set():
+                logging.warning(OPEN_ACCESS_WARNING_MESSAGE)
+                _OPEN_ACCESS_WARNING_EVENT.set()
+            return
         raise HTTPException(
             status_code=500,
             detail="API key not configured on server"

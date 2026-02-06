@@ -27,7 +27,7 @@ Start the API server, then open the GUI to submit text and see action results:
 uvicorn src.api:app --reload
 ```
 
-Open [http://localhost:8000/gui](http://localhost:8000/gui) in your browser. The GUI lets you submit text feed content, supply the API key, and view the validation output plus action results.
+Open [http://localhost:8000/gui](http://localhost:8000/gui) in your browser. The GUI lets you submit text feed content, supply the API key when configured (or enable `ALLOW_OPEN_ACCESS=true` for local testing), and view the validation output plus action results.
 
 ## Core Concepts
 
