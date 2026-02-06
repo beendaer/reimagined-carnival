@@ -96,7 +96,7 @@ class TestAPIEndpoints(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 401)  # Unauthorized due to missing or invalid header
     
-    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"}, clear=True)
     def test_validate_endpoint_with_invalid_api_key(self):
         """Test that validate endpoint rejects requests with invalid API key"""
         response = self.client.post(
