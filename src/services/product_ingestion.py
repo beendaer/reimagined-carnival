@@ -25,8 +25,11 @@ def parse_product_name(name: str) -> Tuple[str, str]:
         raise ValueError("Product name cannot be empty")
 
     parts = cleaned.split()
+    if len(parts) < 2:
+        raise ValueError("Product name must include both make and model")
+
     make = parts[0]
-    model = " ".join(parts[1:]).strip() if len(parts) > 1 else ""
+    model = " ".join(parts[1:]).strip()
     return make, model
 
 
@@ -45,8 +48,6 @@ def convert_normalized_product(
         raise ValueError("Product price is required")
 
     make, model = parse_product_name(product["name"])
-    if not model:
-        raise ValueError("Product name must include both make and model")
     attributes = {key: product[key] for key in ATTRIBUTE_FIELDS if key in product}
 
     return {

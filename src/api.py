@@ -6,7 +6,7 @@ import hmac
 import json
 import os
 from html import escape
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
@@ -35,9 +35,6 @@ class RawProductData(BaseModel):
     attributes: Dict[str, Any] = Field(default_factory=dict)
 
 
-class ProductPayload(BaseModel):
-    """Container for multiple RawProductData entries."""
-    products: List[RawProductData]
 
 
 def validate_api_key_value(api_key: Optional[str]) -> None:
@@ -236,18 +233,13 @@ def validate_text(request: dict):
 
 @app.post("/api/process-products", dependencies=[Depends(verify_api_key)])
 def process_products(
-    request: Union[List[RawProductData], ProductPayload] = Body(...)
+    request: List[RawProductData] = Body(...)
 ):
     """
     Process RawProductData entries for BBFB evaluation.
 
-    Accepts either a JSON array of RawProductData objects or a wrapper
-    object containing a "products" list. Returns a summary plus per-product
-    results with missing field checks and a basic BBFB score.
+    Accepts a JSON array of RawProductData objects. Returns a summary plus
+    per-product results with missing field checks and a basic BBFB score.
     """
-    if isinstance(request, list):
-        products = [product.model_dump() for product in request]
-    else:
-        products = [product.model_dump() for product in request.products]
-
+    products = [product.model_dump() for product in request]
     return evaluate_products(products)
