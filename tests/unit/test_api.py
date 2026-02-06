@@ -47,6 +47,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("Text Feed Testing GUI", response.text)
         self.assertIn("Run Validation", response.text)
 
+    @patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True)
     def test_gui_post_endpoint(self):
         """Test GUI form submission shows results"""
         response = self.client.post(
@@ -172,9 +173,9 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("validation", data)
     
     def test_validate_endpoint_without_api_key_env_var(self):
-        """Test that endpoint accepts requests when API_KEY env var is not set"""
+        """Test that endpoint accepts requests when open access is enabled"""
         # Ensure API_KEY is not set
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True):
             response = self.client.post(
                 "/validate",
                 json={"input_text": "Test", "context": "testing"},
@@ -183,6 +184,11 @@ class TestAPIEndpoints(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             data = response.json()
             self.assertIn("validation", data)
+            response = self.client.post(
+                "/validate",
+                json={"input_text": "Test", "context": "testing"}
+            )
+            self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":

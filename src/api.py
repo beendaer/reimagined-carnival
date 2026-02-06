@@ -24,7 +24,12 @@ app = FastAPI(
 # API Key authentication
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
-_OPEN_MODE_WARNING_EMITTED = threading.Event()
+_OPEN_MODE_WARNING_LOGGED = threading.Event()
+
+
+def is_open_access_enabled() -> bool:
+    """Return True when unauthenticated access is explicitly enabled."""
+    return os.getenv("ALLOW_OPEN_ACCESS", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def validate_api_key_value(api_key: Optional[str]) -> None:
@@ -32,12 +37,17 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     expected_key = os.getenv("API_KEY")
 
     if not expected_key:
-        if not _OPEN_MODE_WARNING_EMITTED.is_set():
-            logging.warning(
-                "API_KEY is not configured; authentication is disabled for API requests."
-            )
-            _OPEN_MODE_WARNING_EMITTED.set()
-        return
+        if is_open_access_enabled():
+            if not _OPEN_MODE_WARNING_LOGGED.is_set():
+                logging.warning(
+                    "API_KEY is not configured; authentication is disabled for API requests."
+                )
+                _OPEN_MODE_WARNING_LOGGED.set()
+            return
+        raise HTTPException(
+            status_code=500,
+            detail="API key not configured on server"
+        )
 
     if not api_key or not isinstance(api_key, str):
         raise HTTPException(
