@@ -7,6 +7,10 @@ from datetime import datetime
 from src.core.orchestrator import MonolithOrchestrator
 from src.models.fact import Fact
 from src.services.validation_service import ValidationStatus
+from src.utils.helpers import analyze_repetition_noise
+
+MAX_REPETITION_PENALTY = 0.7
+REPETITION_PENALTY_FACTOR = 0.25
 
 
 def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
@@ -56,6 +60,15 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     if context:
         coherence_score = min(1.0, coherence_score + 0.05)
     
+    # Add repetition noise check
+    repetition_analysis = analyze_repetition_noise(text)
+    if repetition_analysis["repetition_count"] > 0:
+        repetition_penalty = min(
+            MAX_REPETITION_PENALTY,
+            REPETITION_PENALTY_FACTOR * repetition_analysis["repetition_count"]
+        )
+        coherence_score *= (1.0 - repetition_penalty)
+
     # Add deception check
     from src.services.deception_detector import detect_user_correction
     deception = detect_user_correction(text, context)
@@ -73,6 +86,7 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
         'status': 'coherent' if validation_passed else 'noise',
         'findings': [],
         'matched_correction_phrases': deception.matched_phrases,  # NEW
+        'repetition': repetition_analysis,
         'metadata': {
             'text_length': text_length,
             'word_count': word_count,
@@ -84,6 +98,8 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
         details['findings'].append('Text is too short')
     if noise_detected:
         details['findings'].append('Input detected as noise')
+    if repetition_analysis["repetition_count"] > 0:
+        details['findings'].append('Repetitive token sequences detected')
     if deception.detected:
         details['findings'].append(f'Deception pattern detected: {deception.deception_type}')
     
