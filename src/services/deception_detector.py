@@ -372,6 +372,7 @@ def detect_facade_of_competence(
     matched_phrases.extend(text_signals)
     matched_phrases = list(dict.fromkeys(matched_phrases))
     text_signal_count = len(set(text_signals))
+    text_pattern_count = text_signal_count
 
     detected = probability >= FACADE_DETECTION_THRESHOLD
     confidence = 0.85 if detected else 0.7
@@ -385,7 +386,7 @@ def detect_facade_of_competence(
         details={
             'perfect_metrics_count': len(perfect_metrics),
             'text_signal_count': text_signal_count,
-            'text_pattern_count': text_signal_count,
+            'text_pattern_count': text_pattern_count,
             'layered_probe_flag': probability >= FACADE_LAYERED_THRESHOLD,
             'has_external_validation': external_validation is not None,
             'metrics': metrics or {},
