@@ -48,7 +48,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("Run Validation", response.text)
 
     @patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True)
-    def test_gui_post_endpoint(self):
+    def test_gui_post_endpoint_with_open_access(self):
         """Test GUI form submission shows results"""
         response = self.client.post(
             "/gui",
@@ -172,7 +172,7 @@ class TestAPIEndpoints(unittest.TestCase):
         data = response.json()
         self.assertIn("validation", data)
     
-    def test_validate_endpoint_without_api_key_env_var(self):
+    def test_validate_endpoint_with_open_access(self):
         """Test that endpoint accepts requests when open access is enabled"""
         # Ensure API_KEY is not set
         with patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True):
