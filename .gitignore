@@ -11,6 +11,9 @@ downloads/
 eggs/
 .eggs/
 lib/
+!lib/
+!lib/data-ingestion/
+!lib/data-ingestion/category-configs.ts
 lib64/
 parts/
 sdist/
