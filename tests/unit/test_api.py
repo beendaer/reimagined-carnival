@@ -51,7 +51,7 @@ class TestAPIEndpoints(unittest.TestCase):
     @patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True)
     def test_gui_post_endpoint_with_open_access(self):
         """Test GUI form submission shows results"""
-        api._OPEN_ACCESS_WARNING_LOGGED.clear()
+        api.reset_open_access_warning()
         with self.assertLogs(level="WARNING") as log:
             response = self.client.post(
                 "/gui",
