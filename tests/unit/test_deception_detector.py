@@ -329,6 +329,21 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertIn('politeness_mask_detected', result.details)
 
+    def test_facade_politeness_mask_claim(self):
+        """Detect facade when polite apology masks completion claim"""
+        response_text = "I apologize for the confusion, but the artifact is produced and deployed now. Thank you!"
+        result = detect_facade_of_competence(
+            {},
+            external_validation=None,
+            response_text=response_text
+        )
+        self.assertTrue(result.detected)
+        self.assertGreater(result.probability, 0.7)
+        self.assertGreater(len(result.matched_phrases), 0)
+        self.assertEqual(result.details.get("perfect_metrics_count"), 0)
+        self.assertGreater(result.details.get("text_signal_count", 0), 0)
+        self.assertTrue(result.details.get("response_text_present"))
+
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
     """Test suite for unverified claims detection"""
