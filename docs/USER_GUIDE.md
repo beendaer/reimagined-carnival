@@ -274,7 +274,7 @@ registry.import_facts(Path("facts_backup.json"))
 
 ## Case Studies in Organisational Values and Ethical Systems
 
-Based on 12 sources.
+Based on 12 source references (including placeholder entries where the source was not specified).
 
 | Organisation or Entity | Core Values or Principles | Operational Strategy | Ethical Framework | Social or Industrial Impact | Outcome of Value Alignment | Source |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -296,9 +296,10 @@ Based on 12 sources.
 
 Sources:
 
+- `[Source_Number]` Source details not specified in the provided dataset.
 - `[1]` [ROOT] 📁 BBFB_Master_Project.md.pdf
 - `[2]` 4 Ways Organizational Values Can Fuel Decision-Making - Beehive
-- `[3]` allchachatt
+- `[3]` allchachatt (source title as provided)
 - `[4]` vol 2 no 2 summer 2022 - International Journal of Law, Ethics, and Technology
 
 ## Summary
