@@ -91,6 +91,58 @@ ESCALATION_PATTERNS = [
     re.compile(r'\bdeployed now\b'),
 ]
 
+STRONG_CORRECTION_PATTERNS = [
+    re.compile(r'\bwrong\b'),
+    re.compile(r'\bincorrect\b'),
+    re.compile(r'\bnot correct\b'),
+    re.compile(r'\bnot right\b'),
+    re.compile(r'\byou are wrong\b'),
+    re.compile(r'\byou said .+ but actually\b'),
+    re.compile(r'\byou said .+ but\b'),
+    re.compile(r'\bthat.?s wrong\b'),
+    re.compile(r'\bthat.?s incorrect\b'),
+]
+
+MEDIUM_CORRECTION_PATTERNS = [
+    re.compile(r'\b404\b'),
+    re.compile(r'\bnot deployed\b'),
+    re.compile(r'\bnot live\b'),
+    re.compile(r'\bdoes not exist\b'),
+    re.compile(r'\bdoesn.?t exist\b'),
+    re.compile(r'\bnot found\b'),
+    re.compile(r'\bactually,?\s+\w+'),
+    re.compile(r'\bin fact,?\s+'),
+]
+
+URL_CONTRADICTION_PATTERNS = [
+    re.compile(r'shows?\s+404'),
+    re.compile(r'404\s+\w+'),
+    re.compile(r'deployment.+not found'),
+    re.compile(r'not.+deployed'),
+    re.compile(r'deployment.+failed'),
+]
+
+UNVERIFIED_URL_PATTERN = re.compile(r'(?:https?|content)://[^\s<>"]+')
+FILE_REFERENCE_PATTERNS = [
+    re.compile(r'\bbackend\.js\b', re.IGNORECASE),
+    re.compile(r'@mydrive\b', re.IGNORECASE),
+]
+DEPLOYMENT_PATTERNS = [
+    re.compile(r'\blive\b'),
+    re.compile(r'\bdeployed\b'),
+    re.compile(r'\bdeployment successful\b'),
+    re.compile(r'\bfully operational\b'),
+    re.compile(r'\bready\b'),
+    re.compile(r'\bavailable at\b'),
+    re.compile(r'\bhosted at\b'),
+]
+COMPLETION_PATTERNS = [
+    re.compile(r'\ball files committed\b'),
+    re.compile(r'\bfully integrated\b'),
+    re.compile(r'\bcompleted successfully\b'),
+    re.compile(r'\b100% complete\b'),
+]
+
 TEXT_BASE_PROBABILITY = 0.65
 TEXT_ESCALATED_PROBABILITY = 0.75
 APOLOGY_TOKEN = 'apologize'
@@ -187,38 +239,15 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
     probability = 0.0
     
     # Strong correction patterns (high probability)
-    strong_patterns = [
-        r'\bwrong\b',
-        r'\bincorrect\b',
-        r'\bnot correct\b',
-        r'\bnot right\b',
-        r'\byou are wrong\b',
-        r'\byou said .+ but actually\b',
-        r'\byou said .+ but\b',
-        r'\bthat.?s wrong\b',
-        r'\bthat.?s incorrect\b',
-    ]
-    
-    for pattern in strong_patterns:
-        match = re.search(pattern, text_lower)
+    for pattern in STRONG_CORRECTION_PATTERNS:
+        match = pattern.search(text_lower)
         if match:
             matched_phrases.append(match.group())
             probability = max(probability, 0.9)
     
     # Medium correction patterns
-    medium_patterns = [
-        r'\b404\b',
-        r'\bnot deployed\b',
-        r'\bnot live\b',
-        r'\bdoes not exist\b',
-        r'\bdoesn.?t exist\b',
-        r'\bnot found\b',
-        r'\bactually,?\s+\w+',
-        r'\bin fact,?\s+',
-    ]
-    
-    for pattern in medium_patterns:
-        match = re.search(pattern, text_lower)
+    for pattern in MEDIUM_CORRECTION_PATTERNS:
+        match = pattern.search(text_lower)
         if match:
             matched_phrases.append(match.group())
             probability = max(probability, 0.8)
@@ -229,16 +258,8 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
         probability = max(probability, 0.7)
     
     # Check for deployment/URL contradictions
-    url_contradiction_patterns = [
-        r'shows?\s+404',
-        r'404\s+\w+',
-        r'deployment.+not found',
-        r'not.+deployed',
-        r'deployment.+failed',
-    ]
-    
-    for pattern in url_contradiction_patterns:
-        match = re.search(pattern, text_lower)
+    for pattern in URL_CONTRADICTION_PATTERNS:
+        match = pattern.search(text_lower)
         if match:
             matched_phrases.append(match.group())
             probability = max(probability, 0.85)
@@ -439,53 +460,31 @@ def detect_unverified_claims(text: str) -> DeceptionResult:
     probability = 0.0
     
     # URL patterns
-    url_pattern = r'(?:https?|content)://[^\s<>"]+'
-    urls = re.findall(url_pattern, text)
+    urls = UNVERIFIED_URL_PATTERN.findall(text)
     if urls:
         matched_phrases.extend(urls)
         probability = max(probability, 0.7)
 
     # File reference patterns (local files or drive mentions)
-    file_reference_patterns = [
-        r'\bbackend\.js\b',
-        r'@mydrive\b',
-    ]
-    for pattern in file_reference_patterns:
-        matches = re.findall(pattern, text, re.IGNORECASE)
+    for pattern in FILE_REFERENCE_PATTERNS:
+        matches = pattern.findall(text)
         if matches:
             matched_phrases.extend(matches)
             probability = max(probability, 0.6)
     
     # Deployment claims
-    deployment_patterns = [
-        r'\blive\b',
-        r'\bdeployed\b',
-        r'\bdeployment successful\b',
-        r'\bfully operational\b',
-        r'\bready\b',
-        r'\bavailable at\b',
-        r'\bhosted at\b',
-    ]
-    
     text_lower = text.lower()
     deployment_claim_present = False
-    for pattern in deployment_patterns:
-        matches = re.findall(pattern, text_lower)
+    for pattern in DEPLOYMENT_PATTERNS:
+        matches = pattern.findall(text_lower)
         if matches:
             matched_phrases.extend(matches)
             probability = max(probability, 0.65)
             deployment_claim_present = True
     
     # Completion assertions
-    completion_patterns = [
-        r'\ball files committed\b',
-        r'\bfully integrated\b',
-        r'\bcompleted successfully\b',
-        r'\b100% complete\b',
-    ]
-    
-    for pattern in completion_patterns:
-        matches = re.findall(pattern, text_lower)
+    for pattern in COMPLETION_PATTERNS:
+        matches = pattern.findall(text_lower)
         if matches:
             matched_phrases.extend(matches)
             probability = max(probability, 0.6)
