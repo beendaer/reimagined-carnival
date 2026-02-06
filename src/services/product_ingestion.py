@@ -5,6 +5,9 @@ from typing import Dict, Any, List, Tuple, Optional
 
 REQUIRED_RAW_FIELDS = ("make", "model", "category", "price")
 SCORE_FIELDS = ("reliability", "performance", "efficiency")
+BBFB_SCORE_PRECISION = 3
+MIN_SCORE = 0.0
+MAX_SCORE = 1.0
 ATTRIBUTE_FIELDS = (
     "reliability",
     "performance",
@@ -91,14 +94,14 @@ def calculate_bbfb_score(product: Dict[str, Any]) -> Optional[float]:
     if not isinstance(attributes, dict):
         return None
 
-    scores = [
-        attributes.get(field)
-        for field in SCORE_FIELDS
-        if isinstance(attributes.get(field), (int, float))
-    ]
+    scores = []
+    for field in SCORE_FIELDS:
+        value = attributes.get(field)
+        if isinstance(value, (int, float)) and MIN_SCORE <= value <= MAX_SCORE:
+            scores.append(value)
     if not scores:
         return None
-    return round(sum(scores) / len(scores), 3)
+    return round(sum(scores) / len(scores), BBFB_SCORE_PRECISION)
 
 
 def evaluate_products(products: List[Dict[str, Any]]) -> Dict[str, Any]:

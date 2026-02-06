@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from src.main import validate_input
 from src.services.product_ingestion import evaluate_products
 
@@ -28,11 +28,28 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 class RawProductData(BaseModel):
     """Raw product payload for BBFB processing."""
-    make: str
-    model: str
-    category: str
-    price: float
+    make: str = Field(..., min_length=1)
+    model: str = Field(..., min_length=1)
+    category: str = Field(..., min_length=1)
+    price: float = Field(..., gt=0)
     attributes: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("attributes")
+    @classmethod
+    def validate_attributes(cls, value: Dict[str, Any]) -> Dict[str, Any]:
+        required_scores = ("reliability", "performance", "efficiency")
+        for key in required_scores:
+            score = value.get(key)
+            if not isinstance(score, (int, float)):
+                raise ValueError(
+                    "Attributes must include numeric reliability, performance, "
+                    "and efficiency scores"
+                )
+            if not 0.0 <= score <= 1.0:
+                raise ValueError(
+                    "Score values must be between 0.0 and 1.0"
+                )
+        return value
 
 
 
