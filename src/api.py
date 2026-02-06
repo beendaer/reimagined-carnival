@@ -7,7 +7,7 @@ import json
 import os
 from html import escape
 from typing import Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Security, Depends, Form
+from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
 from src.main import validate_input
@@ -220,15 +220,17 @@ def validate_text(request: dict):
 
 
 @app.post("/api/process-products", dependencies=[Depends(verify_api_key)])
-def process_products(request: dict):
+def process_products(request: Any = Body(...)):
     """Process RawProductData entries for BBFB evaluation."""
-    if not isinstance(request, dict):
+    if isinstance(request, list):
+        products = request
+    elif isinstance(request, dict):
+        products = request.get("products")
+    else:
         raise HTTPException(
             status_code=400,
-            detail="Products payload must be a JSON object"
+            detail="Products payload must be a JSON object or list"
         )
-
-    products = request.get("products")
     if not isinstance(products, list):
         raise HTTPException(
             status_code=400,

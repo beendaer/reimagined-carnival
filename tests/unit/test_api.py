@@ -189,21 +189,19 @@ class TestAPIEndpoints(unittest.TestCase):
         """Test processing RawProductData payloads."""
         response = self.client.post(
             "/api/process-products",
-            json={
-                "products": [
-                    {
-                        "make": "Haier",
-                        "model": "HWF75AW3",
-                        "category": "washing_machine",
-                        "price": 454.0,
-                        "attributes": {
-                            "reliability": 0.94,
-                            "performance": 0.90,
-                            "efficiency": 0.90
-                        }
+            json=[
+                {
+                    "make": "Haier",
+                    "model": "HWF75AW3",
+                    "category": "washing_machine",
+                    "price": 454.0,
+                    "attributes": {
+                        "reliability": 0.94,
+                        "performance": 0.90,
+                        "efficiency": 0.90
                     }
-                ]
-            },
+                }
+            ],
             headers={"x-api-key": "test_api_key_12345"}
         )
         self.assertEqual(response.status_code, 200)

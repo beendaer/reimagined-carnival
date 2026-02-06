@@ -45,6 +45,8 @@ def convert_normalized_product(
         raise ValueError("Product price is required")
 
     make, model = parse_product_name(product["name"])
+    if not model:
+        raise ValueError("Product model is required")
     attributes = {key: product[key] for key in ATTRIBUTE_FIELDS if key in product}
 
     return {
