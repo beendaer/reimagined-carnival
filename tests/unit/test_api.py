@@ -193,6 +193,29 @@ class TestAPIEndpoints(unittest.TestCase):
     def test_validate_endpoint_with_open_access(self):
         """Test that endpoint accepts requests when open access is enabled"""
         # Ensure API_KEY is not set
+        with patch.dict(os.environ, {}, clear=True):
+            response = self.client.post(
+                "/validate",
+                json={"input_text": "Test", "context": "testing"},
+                headers={"x-api-key": "any_key"}
+            )
+            self.assertEqual(response.status_code, 500)
+            data = response.json()
+            self.assertIn("detail", data)
+            self.assertEqual(data["detail"], "API key not configured on server")
+    
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_validate_endpoint_rejects_non_string_input(self):
+        """Validate endpoint should reject non-string input_text values"""
+        response = self.client.post(
+            "/validate",
+            json={"input_text": 123, "context": "testing"},
+            headers={"x-api-key": "test_api_key_12345"}
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertIn("detail", data)
+        self.assertEqual(data["detail"], "input_text must be a string")
         with patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True):
             with self.assertLogs(level="WARNING") as log:
                 response = self.client.post(
