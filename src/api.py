@@ -29,10 +29,7 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     expected_key = os.getenv("API_KEY")
 
     if not expected_key:
-        raise HTTPException(
-            status_code=500,
-            detail="API key not configured on server"
-        )
+        return
 
     if not api_key or not isinstance(api_key, str):
         raise HTTPException(

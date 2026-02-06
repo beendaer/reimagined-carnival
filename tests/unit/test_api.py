@@ -57,8 +57,9 @@ class TestAPIEndpoints(unittest.TestCase):
                 "api_key": "test_api_key_12345"
             }
         )
-        self.assertEqual(response.status_code, 500)
-        self.assertIn("API key not configured on server", response.text)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Action Results", response.text)
+        self.assertIn("Validation Output", response.text)
 
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_gui_post_endpoint_with_api_key(self):
@@ -171,18 +172,16 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("validation", data)
     
     def test_validate_endpoint_without_api_key_env_var(self):
-        """Test that endpoint returns 500 when API_KEY env var is not set"""
+        """Test that endpoint accepts requests when API_KEY env var is not set"""
         # Ensure API_KEY is not set
         with patch.dict(os.environ, {}, clear=True):
             response = self.client.post(
                 "/validate",
-                json={"input_text": "Test", "context": "testing"},
-                headers={"x-api-key": "any_key"}
+                json={"input_text": "Test", "context": "testing"}
             )
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, 200)
             data = response.json()
-            self.assertIn("detail", data)
-            self.assertEqual(data["detail"], "API key not configured on server")
+            self.assertIn("validation", data)
 
 
 if __name__ == "__main__":

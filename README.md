@@ -280,7 +280,7 @@ print(f"Matched phrases: {result['details']['matched_correction_phrases']}")
 
 ## Testing the Protected Validation Endpoint
 
-The `/validate` endpoint requires API key authentication via the `x-api-key` header.
+The `/validate` endpoint requires API key authentication via the `x-api-key` header when the `API_KEY` environment variable is configured. If `API_KEY` is unset, the endpoint runs in open mode for local development.
 
 ### Example Request
 ```bash
@@ -318,7 +318,7 @@ curl -X POST https://taas-validation.onrender.com/validate \
 ```
 
 ### Authentication Error
-Without valid `x-api-key` header, requests return:
+When `API_KEY` is configured, requests without a valid `x-api-key` header return:
 ```json
 {"detail": "Invalid or missing API key"}
 ```
@@ -326,7 +326,7 @@ Without valid `x-api-key` header, requests return:
 ### Local Testing
 To run the API locally:
 ```bash
-# Set API key environment variable
+# (Optional) Set API key environment variable to enable authentication
 export API_KEY=your_secure_api_key
 
 # Install dependencies
@@ -335,7 +335,7 @@ pip install -r requirements.txt
 # Run the API server
 uvicorn src.api:app --reload --port 8000
 
-# Test the endpoint
+# Test the endpoint (include the header if API_KEY is set)
 curl -X POST http://localhost:8000/validate \
   -H "Content-Type: application/json" \
   -H "x-api-key: your_secure_api_key" \
