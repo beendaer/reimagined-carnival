@@ -23,6 +23,7 @@ app = FastAPI(
 # API Key authentication
 API_KEY_NAME = "x-api-key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+_OPEN_MODE_WARNING_EMITTED = False
 
 
 def validate_api_key_value(api_key: Optional[str]) -> None:
@@ -30,9 +31,12 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     expected_key = os.getenv("API_KEY")
 
     if not expected_key:
-        logging.warning(
-            "API_KEY is not configured; authentication is disabled for API requests."
-        )
+        global _OPEN_MODE_WARNING_EMITTED
+        if not _OPEN_MODE_WARNING_EMITTED:
+            logging.warning(
+                "API_KEY is not configured; authentication is disabled for API requests."
+            )
+            _OPEN_MODE_WARNING_EMITTED = True
         return
 
     if not api_key or not isinstance(api_key, str):
