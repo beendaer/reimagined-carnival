@@ -9,6 +9,9 @@ from src.models.fact import Fact
 from src.services.validation_service import ValidationStatus
 from src.utils.helpers import analyze_repetition_noise
 
+MAX_REPETITION_PENALTY = 0.7
+REPETITION_PENALTY_FACTOR = 0.25
+
 
 def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -60,7 +63,10 @@ def validate_input(text: str, context: Optional[str] = None) -> Dict[str, Any]:
     # Add repetition noise check
     repetition_analysis = analyze_repetition_noise(text)
     if repetition_analysis["repetition_count"] > 0:
-        repetition_penalty = min(0.7, 0.25 * repetition_analysis["repetition_count"])
+        repetition_penalty = min(
+            MAX_REPETITION_PENALTY,
+            REPETITION_PENALTY_FACTOR * repetition_analysis["repetition_count"]
+        )
         coherence_score *= (1.0 - repetition_penalty)
 
     # Add deception check

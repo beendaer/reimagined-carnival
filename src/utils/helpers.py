@@ -25,8 +25,12 @@ FILENAME_PATTERN = re.compile(
 INLINE_FILE_COMMENT_PATTERN = re.compile(
     r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+?)(?=\s*(?:\*/|-->|$))"
 )
-REPEATED_COMPOUND_PATTERN = re.compile(r"\b([a-z]{3,30})\1+\b", re.IGNORECASE)
-REPEATED_WORD_PATTERN = re.compile(r"\b([a-z]{2,30})(?:\s+\1){2,}\b", re.IGNORECASE)
+REPEATED_COMPOUND_TOKEN_PATTERN = re.compile(
+    r"\b([a-z]{3,30})\1+\b", re.IGNORECASE
+)
+REPEATED_WORD_RUN_PATTERN = re.compile(
+    r"\b([a-z]{2,30})(?:\s+\1){2,}\b", re.IGNORECASE
+)
 
 
 def validate_third_party_framework(config: Any) -> Dict[str, Any]:
@@ -333,13 +337,18 @@ def analyze_repetition_noise(text: Any) -> Dict[str, Any]:
 
     compound_matches = [
         match.group(0).lower()
-        for match in REPEATED_COMPOUND_PATTERN.finditer(text)
+        for match in REPEATED_COMPOUND_TOKEN_PATTERN.finditer(text)
     ]
     word_run_matches = [
         match.group(0).lower()
-        for match in REPEATED_WORD_PATTERN.finditer(text)
+        for match in REPEATED_WORD_RUN_PATTERN.finditer(text)
     ]
-    matched_phrases = list(dict.fromkeys(compound_matches + word_run_matches))
+    matched_phrases = []
+    seen = set()
+    for phrase in compound_matches + word_run_matches:
+        if phrase not in seen:
+            matched_phrases.append(phrase)
+            seen.add(phrase)
     repetition_count = len(matched_phrases)
 
     return {

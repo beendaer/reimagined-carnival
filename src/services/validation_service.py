@@ -9,6 +9,9 @@ from src.models.fact import Fact
 from src.core.facts_registry import FactsRegistry
 from src.utils.helpers import analyze_repetition_noise
 
+# Maximum repeated token sequences allowed before flagging as noise.
+REPETITION_NOISE_THRESHOLD = 2
+
 
 class ValidationStatus(Enum):
     """Validation status enumeration"""
@@ -354,7 +357,7 @@ class ValidationService:
         """
         repetition_analysis = analyze_repetition_noise(fact.statement)
         repetition_count = repetition_analysis["repetition_count"]
-        passed = repetition_count < 2
+        passed = repetition_count < REPETITION_NOISE_THRESHOLD
 
         return {
             'passed': passed,
