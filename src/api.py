@@ -39,7 +39,7 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     if not expected_key:
         if is_open_access_enabled():
             if not _OPEN_ACCESS_WARNING_LOGGED.is_set():
-                logging.error(
+                logging.warning(
                     "API_KEY is not configured; authentication is disabled for API requests."
                 )
                 _OPEN_ACCESS_WARNING_LOGGED.set()
