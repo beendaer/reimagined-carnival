@@ -4,6 +4,7 @@ Provides authenticated API endpoints for text validation
 """
 import hmac
 import json
+import logging
 import os
 from html import escape
 from typing import Optional, Dict, Any
@@ -29,6 +30,9 @@ def validate_api_key_value(api_key: Optional[str]) -> None:
     expected_key = os.getenv("API_KEY")
 
     if not expected_key:
+        logging.warning(
+            "API_KEY is not configured; authentication is disabled for API requests."
+        )
         return
 
     if not api_key or not isinstance(api_key, str):

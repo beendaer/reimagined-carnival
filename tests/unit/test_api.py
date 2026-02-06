@@ -177,7 +177,8 @@ class TestAPIEndpoints(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             response = self.client.post(
                 "/validate",
-                json={"input_text": "Test", "context": "testing"}
+                json={"input_text": "Test", "context": "testing"},
+                headers={"x-api-key": "invalid_key"}
             )
             self.assertEqual(response.status_code, 200)
             data = response.json()
