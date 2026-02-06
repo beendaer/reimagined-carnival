@@ -189,7 +189,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("validation", data)
-    
+
     def test_validate_endpoint_with_open_access(self):
         """Test that endpoint accepts requests when open access is enabled"""
         # Ensure API_KEY is not set
@@ -240,6 +240,23 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(data["summary"]["processed"], 1)
         self.assertEqual(data["summary"]["valid"], 1)
         self.assertAlmostEqual(data["results"][0]["bbfb_score"], 0.913, places=3)
+
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_validate_endpoint_rejects_non_string_input(self):
+        """Test validation endpoint rejects non-string input_text payloads."""
+        payload = {
+            "input_text": {"file_system": {"manifest": None}},
+            "context": "testing"
+        }
+        response = self.client.post(
+            "/validate",
+            json=payload,
+            headers={"x-api-key": "test_api_key_12345"}
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertIn("detail", data)
+        self.assertEqual(data["detail"], "Input text must be a string")
 
 
 if __name__ == "__main__":
