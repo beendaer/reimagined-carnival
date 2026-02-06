@@ -50,9 +50,7 @@ def _find_pattern_matches(patterns: List[str], text_lower: str) -> List[str]:
     return matches
 COMPLETION_THANKS_MAX_CHARS = 40
 COMPLETION_THANKS_PATTERN = re.compile(
-    r"(?P<completion>\bcomplete\b)[^\n]{0,"
-    + str(COMPLETION_THANKS_MAX_CHARS)
-    + r"}(?P<thanks>\bthank you\b)"
+    rf"(?P<completion>\bcomplete\b)[^\n]{{0,{COMPLETION_THANKS_MAX_CHARS}}}(?P<thanks>\bthank you\b)"
 )
 FACADE_APOLOGY_PATTERNS = [
     re.compile(r'\bi apologize\b'),
@@ -66,6 +64,7 @@ FACADE_STRONG_COMPLETION_PATTERNS = [
     re.compile(r'\bartifact is produced\b'),
     re.compile(r'\bready now\b'),
 ]
+FACADE_STRONG_COMPLETION_PATTERN_SET = frozenset(FACADE_STRONG_COMPLETION_PATTERNS)
 FACADE_COMPLETION_TEXT_PATTERNS = [
     re.compile(r'\bcomplete\b'),
     re.compile(r'\bcompleted\b'),
@@ -345,7 +344,7 @@ def detect_facade_of_competence(
             match = pattern.search(text_lower)
             if match:
                 completion_hits.append(match.group())
-                if pattern in FACADE_STRONG_COMPLETION_PATTERNS:
+                if pattern in FACADE_STRONG_COMPLETION_PATTERN_SET:
                     strong_completion_hit = True
 
         if FACADE_APOLOGY_PIVOT_PATTERN.search(text_lower):
@@ -372,7 +371,7 @@ def detect_facade_of_competence(
     matched_phrases.extend(text_signals)
     matched_phrases = list(dict.fromkeys(matched_phrases))
     text_signal_count = len(set(text_signals))
-    text_pattern_count = text_signal_count
+    text_pattern_count = text_signal_count  # legacy alias for downstream consumers
 
     detected = probability >= FACADE_DETECTION_THRESHOLD
     confidence = 0.85 if detected else 0.7
