@@ -207,6 +207,21 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(metrics)
         self.assertFalse(result.detected)
     
+    def test_politeness_mask_facade_detection(self):
+        """Facade detection should flag polite completion claims without metrics"""
+        text = "Complete, thank you. I apologize, but the artifact is produced and deployed now."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
+        self.assertTrue(result.details.get('politeness_mask_detected'))
+        self.assertTrue(result.details.get('audit_flagged'))
+    
+    def test_polite_assurance_combination_boosts_facade(self):
+        """Polite assurance plus completion language should trip facade gate"""
+        text = "Thanks for your patience; I assure you it is fully deployed and ready now."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreater(result.details.get('text_layer_probability', 0.0), 0.5)
     def test_facade_polite_completion_mask(self):
         """Polite completion phrasing without evidence should flag facade"""
         text = "Complete, thank you for your patience"

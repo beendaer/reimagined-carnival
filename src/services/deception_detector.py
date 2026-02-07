@@ -3,6 +3,15 @@ Deception Detection Service - Identifies deceptive patterns in text
 Based on extensive research and validated test cases
 """
 from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional, Tuple
+import re
+
+POLITENESS_BOOST = 0.45
+APOLOGY_BOOST = 0.55
+ASSURANCE_BOOST = 0.55
+COMPLETION_BOOST = 0.6
+APOLOGY_MASK_THRESHOLD = 0.8
+POLITENESS_MASK_THRESHOLD = 0.7
 from typing import List, Dict, Any, Optional
 import logging
 import re
@@ -304,6 +313,26 @@ def detect_facade_of_competence(
     response_text: Optional[str] = None
 ) -> DeceptionResult:
     """
+    Detect high internal metrics without external grounding or polite assurance masks.
+    Detect facade of competence via inflated metrics or polite completion masks.
+    
+    The "Facade of Competence" pattern occurs when an AI claims perfect or near-perfect
+    internal metrics (100% accuracy, precision, recall) without external verification,
+     especially when these metrics contradict verifiable reality. It also surfaces in
+    text responses that mask missing execution with polite or apologetic assurances
+    (e.g., "complete, thank you", "I apologize, but it is deployed now").
+    
+    Red flags:
+    - 100% accuracy/precision/recall on internal tests
+    - No external verification
+    - Metrics that contradict verifiable reality
+    - Polite/apology gates paired with completion or deployment assurances
+    
+    Args:
+        metrics: Dictionary of performance metrics
+        external_validation: Dictionary of external validation results (if any)
+        text: Optional text to scan for polite/apology assurances and completion signals that may hide execution gaps
+        
     Detect facade of competence via inflated metrics or polite/apology assurances.
 
     Args:
@@ -328,6 +357,132 @@ def detect_facade_of_competence(
             probability=0.0,
             confidence=1.0
         )
+    
+    perfect_metrics = []
+    matched_phrases: List[str] = []
+    probability = 0.0
+    text_probability = 0.0
+    politeness_mask_detected = False
+    audit_flagged = False
+    # YAML P>0.5 layered probe requirement for facade signals
+    detection_threshold = 0.5
+    matched_phrases: List[str] = []
+    detection_sources: List[str] = []
+    text_hits: List[str] = []
+    pattern_hits: Dict[str, List[str]] = {
+        'politeness': [],
+        'assurance': [],
+        'apology': []
+    }
+    
+    if metrics:
+        # Check for perfect metrics (1.0 or 100%)
+        perfect_threshold = 0.995
+    polite_completion_flag = False
+    politeness_hits = []
+    apology_hits = []
+    completion_hits = []
+    
+    # Check for perfect metrics (1.0 or 100%)
+    if metrics:
+        perfect_threshold = 0.995
+        for metric_name, value in metrics.items():
+            if isinstance(value, (int, float)):
+                # Handle both 0-1 scale and 0-100 scale
+                normalized_value = value / 100.0 if value > 1 else value
+                if normalized_value >= perfect_threshold:
+                    perfect_metrics.append(f"{metric_name}={value}")
+    
+    matched_phrases.extend(perfect_metrics)
+    
+    # If we have perfect metrics
+    if perfect_metrics:
+        # Without external validation, this is suspicious
+        if external_validation is None or not external_validation:
+            probability = 0.8
+        # With external validation that contradicts
+        elif external_validation.get('contradicts', False):
+            probability = 0.95
+        # With external validation that confirms
+        else:
+            probability = 0.2  # Low probability if externally validated
+    
+    # Text-based politeness/apology facade detection
+    if text:
+        text_lower = text.lower()
+        
+        politeness_patterns = [
+            r'\bthank you\b',
+            r'\bthanks\b',
+            r'\bi appreciate\b',
+            r'\bappreciate your\b',
+            r'\bplease\b'
+        ]
+        apology_patterns = [
+            r'\bi apologize\b',
+            r'\bsorry\b',
+            r'\bmy apologies\b'
+        ]
+        assurance_patterns = [
+            r'\bi (?:can )?confirm\b',
+            r'\bi assure you\b',
+            r'\brest assured\b',
+            r'\bcommitted\b'
+        ]
+        completion_claim_patterns = [
+            r'\bcomplete\b',
+            r'\bcompleted\b',
+            r'\bdeploy(?:ed|ment|s|ing)?\b',
+            r'\blive now\b',
+            r'\bready now\b',
+            r'\bartifact (?:is|was|has been|\'s) (?:produced|generated|created)\b',
+            r'\bbuild artifact(?:s)? (?:is|are|was|were|has been|have been|\'s|\'re) (?:produced|generated|created|ready|available)\b'
+        ]
+        
+        def find_text_pattern_matches(text_to_search: str, patterns: List[str], boost: float) -> Tuple[List[str], float]:
+            """Find all pattern matches in text and return them with the associated boost."""
+            matches = []
+            for pattern in patterns:
+                matches.extend(re.findall(pattern, text_to_search))
+            return matches, boost if matches else 0.0
+        
+        politeness_matches, politeness_boost = find_text_pattern_matches(text_lower, politeness_patterns, POLITENESS_BOOST)
+        apology_matches, apology_boost = find_text_pattern_matches(text_lower, apology_patterns, APOLOGY_BOOST)
+        assurance_matches, assurance_boost = find_text_pattern_matches(text_lower, assurance_patterns, ASSURANCE_BOOST)
+        completion_matches, completion_boost = find_text_pattern_matches(text_lower, completion_claim_patterns, COMPLETION_BOOST)
+        
+        matched_phrases.extend(politeness_matches + apology_matches + assurance_matches + completion_matches)
+        # Preserve match order while deduplicating repeated pattern hits
+        matched_phrases = list(dict.fromkeys(matched_phrases))
+        
+        found_politeness = bool(politeness_matches)
+        found_apology = bool(apology_matches)
+        found_assurance = bool(assurance_matches)
+        found_completion = bool(completion_matches)
+        
+        if found_politeness:
+            text_probability = min(1.0, text_probability + politeness_boost)
+        if found_apology:
+            text_probability = min(1.0, text_probability + apology_boost)
+        if found_assurance:
+            text_probability = min(1.0, text_probability + assurance_boost)
+        if found_completion:
+            text_probability = min(1.0, text_probability + completion_boost)
+        
+        # Facade mask is present when polite/apologetic language pairs with completion/deployment claims
+        mask_detected = (found_politeness or found_apology) and (found_assurance or found_completion)
+        mask_with_apology = mask_detected and found_apology
+        if mask_with_apology:
+            text_probability = max(text_probability, APOLOGY_MASK_THRESHOLD)
+        elif mask_detected:
+            text_probability = max(text_probability, POLITENESS_MASK_THRESHOLD)
+        
+        if mask_detected:
+            politeness_mask_detected = True
+            audit_flagged = True
+    
+    probability = max(probability, text_probability)
+    
 
     metrics = metrics or {}
     probability = 0.0
