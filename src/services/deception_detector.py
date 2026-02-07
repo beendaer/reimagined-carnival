@@ -198,8 +198,7 @@ def detect_facade_of_competence(
     Args:
         metrics: Dictionary of performance metrics
         external_validation: Dictionary of external validation results (if any)
-        text: Optional text to scan for polite/apology assurance hiding gaps
-        text: Optional text to scan for polite/apology completion signals
+        text: Optional text to scan for polite/apology assurances and completion signals that may hide execution gaps
         
     Returns:
         DeceptionResult indicating if facade pattern is detected
