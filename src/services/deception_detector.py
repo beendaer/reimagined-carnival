@@ -246,6 +246,22 @@ def detect_user_correction(text: str, context: str = None) -> DeceptionResult:
             probability = max(probability, 0.9)
     
     # Medium correction patterns
+    medium_patterns = [
+        r'\b404\b',
+        r'\bnot deployed\b',
+        r'\bnot live\b',
+        r'\bdoes not exist\b',
+        r'\bdoesn.?t exist\b',
+        r'\bnot found\b',
+        r'\bxml parsing error\b',
+        r'\bparsererror\b',
+        r'\bnot\s+well-formed\b',
+        r'\bactually,?\s+\w+',
+        r'\bin fact,?\s+',
+    ]
+    
+    for pattern in medium_patterns:
+        match = re.search(pattern, text_lower)
     for pattern in MEDIUM_CORRECTION_PATTERNS:
         match = pattern.search(text_lower)
         if match:
