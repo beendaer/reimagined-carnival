@@ -1,0 +1,44 @@
+[
+  {
+    "make": "Haier",
+    "model": "HWF75AW3",
+    "category": "washing_machine",
+    "price": 454.0,
+    "attributes": {
+      "reliability": 0.94,
+      "performance": 0.90,
+      "efficiency": 0.90,
+      "failure_rate": 0.03,
+      "repair_cost": 350,
+      "energy_cost": 45
+    }
+  },
+  {
+    "make": "Westinghouse",
+    "model": "WWF7524N3WA",
+    "category": "washing_machine",
+    "price": 480.0,
+    "attributes": {
+      "reliability": 0.85,
+      "performance": 0.88,
+      "efficiency": 0.80,
+      "failure_rate": 0.05,
+      "repair_cost": 300,
+      "energy_cost": 55
+    }
+  },
+  {
+    "make": "Westinghouse",
+    "model": "WWF7524N3WA (Factory Seconds)",
+    "category": "washing_machine",
+    "price": 390.0,
+    "attributes": {
+      "reliability": 0.82,
+      "performance": 0.85,
+      "efficiency": 0.70,
+      "failure_rate": 0.08,
+      "repair_cost": 300,
+      "energy_cost": 65
+    }
+  }
+]

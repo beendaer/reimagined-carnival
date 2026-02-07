@@ -162,6 +162,37 @@ class TestFactsRegistry(unittest.TestCase):
         self.assertEqual(report['total_facts'], 1)
         self.assertEqual(report['verified_facts'], 1)
         self.assertIn('coherence', report['category_breakdown'])
+    
+    def test_coherence_report_counts(self):
+        """Test coherence report counts with mixed facts"""
+        verified_fact = Fact(
+            id="coh_002",
+            category="architecture",
+            statement="Verified architecture fact",
+            verified=True,
+            timestamp=datetime.now(),
+            tags=["test"]
+        )
+        unverified_fact = Fact(
+            id="coh_003",
+            category="deployment",
+            statement="Unverified deployment fact",
+            verified=False,
+            timestamp=datetime.now(),
+            tags=["test"]
+        )
+        
+        self.registry.register_fact(verified_fact)
+        self.registry.register_fact(unverified_fact)
+        
+        report = self.registry.get_coherence_report()
+        
+        self.assertEqual(report['total_facts'], 2)
+        self.assertEqual(report['verified_facts'], 1)
+        self.assertEqual(report['unverified_facts'], 1)
+        self.assertEqual(report['category_breakdown']['architecture'], 1)
+        self.assertEqual(report['category_breakdown']['deployment'], 1)
+        self.assertEqual(report['categories_count'], 2)
 
 
 if __name__ == '__main__':
