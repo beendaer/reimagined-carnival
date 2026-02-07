@@ -181,7 +181,7 @@ class ValidationService:
             confidence -= 0.1
         
         # Add deception detection
-        from services.deception_detector import (
+        from src.services.deception_detector import (
             detect_user_correction,
             detect_unverified_claims
         )
@@ -259,14 +259,21 @@ class ValidationService:
             }
         
         total = len(self.validation_results)
-        coherent = sum(1 for r in self.validation_results.values() 
-                      if r.status == ValidationStatus.COHERENT)
-        suspicious = sum(1 for r in self.validation_results.values() 
-                        if r.status == ValidationStatus.SUSPICIOUS)
-        noise = sum(1 for r in self.validation_results.values() 
-                   if r.status == ValidationStatus.NOISE)
+        coherent = 0
+        suspicious = 0
+        noise = 0
+        total_confidence = 0.0
         
-        avg_confidence = sum(r.confidence for r in self.validation_results.values()) / total
+        for result in self.validation_results.values():
+            if result.status == ValidationStatus.COHERENT:
+                coherent += 1
+            elif result.status == ValidationStatus.SUSPICIOUS:
+                suspicious += 1
+            elif result.status == ValidationStatus.NOISE:
+                noise += 1
+            total_confidence += result.confidence
+        
+        avg_confidence = total_confidence / total
         coherence_rate = (coherent / total * 100) if total > 0 else 0.0
         
         return {

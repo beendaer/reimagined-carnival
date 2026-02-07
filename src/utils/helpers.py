@@ -4,8 +4,27 @@ Provides validation and formatting utilities for the monolith
 """
 from typing import Dict, Any, List
 from datetime import datetime
-from pathlib import Path
-import os
+import os  # Used by documentation structure validation
+import re
+
+FILENAME_PATTERN = re.compile(
+    r"""
+    (?!https?://)                      # avoid matching full URLs
+    (?=[A-Za-z0-9_./+\-]*[A-Za-z_])    # require at least one alphabetic character
+    [A-Za-z0-9_./+\-]+                 # allow common path characters (including '+' for versioned names)
+    \.[A-Za-z][A-Za-z0-9]+             # extension must start with a letter
+    """,
+    re.VERBOSE,
+)
+# INLINE_FILE_COMMENT_PATTERN supports:
+#   - Python style: # file: path
+#   - C/JS style: // file: path
+#   - HTML style: <!-- file: path -->
+#   - Assembly style: ; file: path
+#   - C block style: /* file: path */ or /** file: path */
+INLINE_FILE_COMMENT_PATTERN = re.compile(
+    r"(?im)^(?:#|//|<!--|;|/\*{1,2})\s*file\s*:\s*([^\s]+?)(?=\s*(?:\*/|-->|$))"
+)
 
 
 def validate_third_party_framework(config: Any) -> Dict[str, Any]:
@@ -195,3 +214,107 @@ def format_report(data: Dict[str, Any], title: str = "Report") -> str:
     lines.append("=" * 50)
     
     return "\n".join(lines)
+
+
+def _collect_text_fragments(value: Any) -> List[str]:
+    """Recursively collect string fragments from nested conversation history."""
+    fragments: List[str] = []
+    if isinstance(value, str):
+        fragments.append(value)
+    elif isinstance(value, dict):
+        for item in value.values():
+            fragments.extend(_collect_text_fragments(item))
+    elif isinstance(value, list):
+        for item in value:
+            fragments.extend(_collect_text_fragments(item))
+    return fragments
+
+
+def extract_key_code_segments(history: Any) -> str:
+    """
+    Extract key code segments from conversation history and format them as Markdown.
+
+    The function looks for fenced code blocks (```), associates them with the
+    nearest file name mention, and returns only the Markdown-formatted snippets.
+
+    Args:
+        history: Conversation history as a string, list, or dictionary.
+
+    Returns:
+        Markdown string containing extracted code snippets grouped by file name.
+    """
+    if history is None:
+        return ""
+
+    # Gather textual content while preserving newlines
+    if isinstance(history, str):
+        text = history
+    else:
+        fragments = _collect_text_fragments(history)
+        text = "\n".join(fragments)
+
+    code_blocks = list(
+        re.finditer(
+            r"```(?P<label>[^\n`]*)\n(?P<code>.+?)```", text, re.DOTALL
+        )
+    )
+
+    if not code_blocks:
+        return ""
+
+    segments = []
+    snippet_counter = 1
+    for match in code_blocks:
+        label = match.group("label").strip()
+        code = match.group("code").strip()
+
+        file_name = None
+        language = None
+
+        # If the fence label looks like a filename, use it. Otherwise treat as language.
+        if label:
+            label_match = FILENAME_PATTERN.search(label)
+            if label_match:
+                file_name = label_match.group(0)
+            else:
+                language = label
+
+        # Try to find explicit file markers inside the code block.
+        if not file_name:
+            inline_match = INLINE_FILE_COMMENT_PATTERN.search(code)
+            if inline_match:
+                file_name = inline_match.group(1).strip()
+
+        # Look backwards in the history for the nearest filename mention.
+        if not file_name:
+            prefix = text[: match.start()]
+            filenames = FILENAME_PATTERN.findall(prefix)
+            if filenames:
+                file_name = filenames[-1]
+
+        if not file_name:
+            file_name = f"snippet-{snippet_counter}"
+            snippet_counter += 1
+
+        segments.append(
+            {"file": file_name, "language": language, "code": code}
+        )
+
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for segment in segments:
+        grouped.setdefault(segment["file"], []).append(segment)
+
+    parts: List[str] = []
+    for file_name, snippets in grouped.items():
+        for idx, snippet in enumerate(snippets, start=1):
+            heading = f"### {file_name}"
+            if len(snippets) > 1:
+                heading = f"{heading} (part {idx})"
+            parts.append(heading)
+            fence = f"```{snippet['language']}" if snippet["language"] else "```"
+            parts.append(fence)
+            parts.append(snippet["code"])
+            parts.append("```")
+            parts.append("")  # spacer
+
+    return "\n".join(parts).rstrip()

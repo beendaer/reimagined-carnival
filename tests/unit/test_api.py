@@ -38,6 +38,52 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["status"], "healthy")
+
+    def test_gui_get_endpoint(self):
+        """Test GUI endpoint renders HTML"""
+        response = self.client.get("/gui")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers.get("content-type", ""))
+        self.assertIn("Text Feed Testing GUI", response.text)
+        self.assertIn("Run Validation", response.text)
+
+    def test_gui_post_endpoint(self):
+        """Test GUI form submission shows results"""
+        response = self.client.post(
+            "/gui",
+            data={
+                "input_text": "This is a coherent test statement",
+                "context": "testing",
+                "api_key": "test_api_key_12345"
+            }
+        )
+        self.assertEqual(response.status_code, 500)
+        self.assertIn("API key not configured on server", response.text)
+
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_gui_post_endpoint_with_api_key(self):
+        """Test GUI form submission with API key shows results"""
+        response = self.client.post(
+            "/gui",
+            data={
+                "input_text": "This is a coherent test statement",
+                "context": "testing",
+                "api_key": "test_api_key_12345"
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Action Results", response.text)
+        self.assertIn("Validation Output", response.text)
+
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
+    def test_gui_post_endpoint_without_api_key(self):
+        """Test GUI form submission without API key is rejected"""
+        response = self.client.post(
+            "/gui",
+            data={"input_text": "This is a coherent test statement", "context": "testing"}
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("Invalid or missing API key", response.text)
     
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_validate_endpoint_without_api_key(self):
@@ -46,7 +92,7 @@ class TestAPIEndpoints(unittest.TestCase):
             "/validate",
             json={"input_text": "This is a test", "context": "testing"}
         )
-        self.assertEqual(response.status_code, 403)  # Forbidden due to missing header
+        self.assertEqual(response.status_code, 401)  # Unauthorized due to missing or invalid header
     
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_validate_endpoint_with_invalid_api_key(self):
