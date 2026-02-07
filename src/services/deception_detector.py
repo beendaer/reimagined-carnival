@@ -342,7 +342,7 @@ def detect_facade_of_competence(
     
     probability = max(probability, text_probability)
     
-    detected = probability > 0.6
+    detected = probability >= FACADE_DETECTION_THRESHOLD
     confidence = 0.85 if detected else 0.7
 
     return DeceptionResult(
