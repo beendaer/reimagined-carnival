@@ -355,6 +355,11 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertIn('politeness_mask_detected', result.details)
 
+    def test_facade_politeness_mask_with_completion_claim(self):
+        """Detect facade when polite language masks completion claims"""
+        response_text = "Complete, thank you. I apologize, but the deployment is live now."
+        result = detect_facade_of_competence(
+            metrics=None,
     def test_facade_politeness_mask_claim(self):
         """Detect facade when polite apology masks completion claim"""
         response_text = "I apologize for the confusion, but the artifact is produced and deployed now. Thank you!"
@@ -364,6 +369,9 @@ class TestFacadeDetection(unittest.TestCase):
             response_text=response_text
         )
         self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
+        self.assertTrue(result.details.get("politeness_detected"))
+        self.assertTrue(result.details.get("probable_facade"))
         self.assertGreater(result.probability, 0.7)
         self.assertGreater(len(result.matched_phrases), 0)
         self.assertEqual(result.details.get("perfect_metrics_count"), 0)
