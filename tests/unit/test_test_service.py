@@ -105,6 +105,23 @@ class TestTestService(unittest.TestCase):
         self.assertEqual(summary['failed'], 0)
         self.assertEqual(summary['skipped'], 0)
         self.assertEqual(summary['success_rate'], 50.0)
+
+    def test_get_code_mistakes_report(self):
+        """Test code mistakes report includes failed and error tests"""
+        self.test_service.test_results = {
+            "fail": TestResult(test_id="fail", status=TestStatus.FAILED, message="Assertion failed", duration=0.1),
+            "error": TestResult(test_id="error", status=TestStatus.ERROR, message="Boom", duration=0.2)
+        }
+
+        report = self.test_service.get_code_mistakes_report()
+
+        self.assertIn("Code Mistakes Report", report)
+        self.assertIn("mistake_count", report)
+        self.assertIn("2", report)
+        self.assertIn("fail", report)
+        self.assertIn("error", report)
+        self.assertIn("status: failed", report)
+        self.assertIn("status: error", report)
     
     def test_verify_fact_coherence(self):
         """Test fact coherence verification"""
