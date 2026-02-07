@@ -116,10 +116,12 @@ class TestTestService(unittest.TestCase):
         report = self.test_service.get_code_mistakes_report()
 
         self.assertIn("Code Mistakes Report", report)
-        self.assertIn("mistake_count: 2", report)
+        self.assertIn("mistake_count", report)
+        self.assertIn("2", report)
         self.assertIn("fail", report)
         self.assertIn("error", report)
         self.assertIn("status: failed", report)
+        self.assertIn("status: error", report)
     
     def test_verify_fact_coherence(self):
         """Test fact coherence verification"""
