@@ -291,11 +291,11 @@ def detect_facade_of_competence(
         completion_claim_patterns = [
             r'\bcomplete\b',
             r'\bcompleted\b',
-            r'\bdeployed\b',
+            r'\bdeploy(?:ed|ment|s|ing)?\b',
             r'\blive now\b',
             r'\bready now\b',
-            r'\bartifact\b',
-            r'\bproduced\b'
+            r'\bartifact (?:is|was|has been|\'s) (?:produced|generated|created)\b',
+            r'\bbuild artifact(?:s)? (?:is|are|was|were|has been|have been|\'s|\'re) (?:produced|generated|created|ready|available)\b'
         ]
         
         def find_text_pattern_matches(text_to_search: str, patterns: List[str], boost: float) -> Tuple[List[str], float]:
