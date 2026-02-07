@@ -19,7 +19,7 @@ class TestProjectMetadata(unittest.TestCase):
             metadata.get("description"),
             "Monolithic architecture implementing Testing as a Service (TAAS) with a coherent facts registry.",
         )
-        self.assertEqual(metadata.get("main"), "src/main.py")
+        self.assertIsNone(metadata.get("main"))
         self.assertEqual(metadata.get("repository", {}).get("type"), "git")
         self.assertEqual(
             metadata.get("repository", {}).get("url"),

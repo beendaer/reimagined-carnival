@@ -2,7 +2,6 @@
   "name": "reimagined-carnival",
   "version": "1.0.0",
   "description": "Monolithic architecture implementing Testing as a Service (TAAS) with a coherent facts registry.",
-  "main": "src/main.py",
   "repository": {
     "type": "git",
     "url": "https://github.com/beendaer/reimagined-carnival.git"
