@@ -71,6 +71,17 @@ class TestUserCorrectionDetection(unittest.TestCase):
         self.assertTrue(result.detected)
         self.assertIn('404', result.matched_phrases)
     
+    def test_correction_xml_parsing_error(self):
+        """Test detection of XML parsing errors"""
+        result = detect_user_correction("XML Parsing Error: not well-formed")
+        self.assertTrue(result.detected)
+        matched_text = ' '.join(result.matched_phrases).lower()
+        self.assertTrue(
+            'xml parsing error' in matched_text
+            or 'not well-formed' in matched_text
+            or 'parsererror' in matched_text
+        )
+
     def test_correction_not_deployed(self):
         """Test detection of 'not deployed' phrase"""
         result = detect_user_correction("It's not deployed yet")
@@ -196,6 +207,21 @@ class TestFacadeDetection(unittest.TestCase):
         result = detect_facade_of_competence(metrics)
         self.assertFalse(result.detected)
     
+    def test_politeness_mask_facade_detection(self):
+        """Facade detection should flag polite completion claims without metrics"""
+        text = "Complete, thank you. I apologize, but the artifact is produced and deployed now."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
+        self.assertTrue(result.details.get('politeness_mask_detected'))
+        self.assertTrue(result.details.get('audit_flagged'))
+    
+    def test_polite_assurance_combination_boosts_facade(self):
+        """Polite assurance plus completion language should trip facade gate"""
+        text = "Thanks for your patience; I assure you it is fully deployed and ready now."
+        result = detect_facade_of_competence(text=text)
+        self.assertTrue(result.detected)
+        self.assertGreater(result.details.get('text_layer_probability', 0.0), 0.5)
     def test_facade_polite_completion_mask(self):
         """Polite completion phrasing without evidence should flag facade"""
         text = "Complete, thank you for your patience"
@@ -334,6 +360,11 @@ class TestFacadeDetection(unittest.TestCase):
         response_text = "Complete, thank you. I apologize, but the deployment is live now."
         result = detect_facade_of_competence(
             metrics=None,
+    def test_facade_politeness_mask_claim(self):
+        """Detect facade when polite apology masks completion claim"""
+        response_text = "I apologize for the confusion, but the artifact is produced and deployed now. Thank you!"
+        result = detect_facade_of_competence(
+            {},
             external_validation=None,
             response_text=response_text
         )
@@ -341,6 +372,11 @@ class TestFacadeDetection(unittest.TestCase):
         self.assertGreaterEqual(result.probability, 0.7)
         self.assertTrue(result.details.get("politeness_detected"))
         self.assertTrue(result.details.get("probable_facade"))
+        self.assertGreater(result.probability, 0.7)
+        self.assertGreater(len(result.matched_phrases), 0)
+        self.assertEqual(result.details.get("perfect_metrics_count"), 0)
+        self.assertGreater(result.details.get("text_signal_count", 0), 0)
+        self.assertTrue(result.details.get("response_text_present"))
 
 
 class TestUnverifiedClaimsDetection(unittest.TestCase):
