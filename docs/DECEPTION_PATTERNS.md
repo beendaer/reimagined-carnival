@@ -50,6 +50,7 @@ result = detect_user_correction("That's wrong, it's not deployed")
 - No external verification attempts
 - Metrics that contradict observable reality
 - Multiple perfect metrics simultaneously
+- Polite assurance language masking missing proof ("thank you, it's ready", "I have checked and confirmed")
 - Polite/apology assurances masking completion or deployment claims (text-layer P>0.5)
 - Polite completion/apology claims masking missing evidence ("complete, thank you", "I apologize, but deployed now")
 - Polite completion/apology masks such as "complete, thank you" or "I apologize, but deploy now" that double down on delivery claims without evidence (layered probe flag when probability ≥ 0.5)
@@ -83,6 +84,12 @@ metrics = {
 result = detect_facade_of_competence(metrics, external_validation=None)
 # result.detected = True
 # result.probability = 0.8
+
+# Politeness masking without metrics
+text = "Thank you, deployment is ready now. I have checked and confirmed."
+result = detect_facade_of_competence(text=text)
+# result.detected = True
+# result.probability = 0.75
 
 # With contradicting external validation
 external = {'contradicts': True}
