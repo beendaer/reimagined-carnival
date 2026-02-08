@@ -1,0 +1,18 @@
+{
+  "name": "reimagined-carnival",
+  "version": "1.0.0",
+  "description": "Monolithic architecture implementing Testing as a Service (TAAS) with a coherent facts registry.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/beendaer/reimagined-carnival.git"
+  },
+  "keywords": [
+    "taas",
+    "coherent-facts",
+    "facts-registry",
+    "deception-detection",
+    "monolith"
+  ],
+  "author": "beendaer",
+  "license": "MIT"
+}
