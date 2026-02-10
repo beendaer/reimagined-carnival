@@ -125,6 +125,24 @@ class TestValidationService(unittest.TestCase):
         self.assertEqual(result.fact_id, 'test_003')
         # Should have lower confidence due to missing tags
         self.assertGreater(len(result.findings), 0)
+
+    def test_evaluate_coherence_repetition_noise(self):
+        """Test evaluating coherence for repeated token sequences"""
+        repetition_fact = Fact(
+            id="test_005",
+            category="testing",
+            statement="Oops tissuetissue stop it im not a dickheaddickhead selfself",
+            verified=False,
+            timestamp=datetime.now(),
+            tags=["testing"]
+        )
+
+        result = self.validation_service.evaluate_coherence(repetition_fact)
+
+        self.assertIn(result.status, [ValidationStatus.SUSPICIOUS, ValidationStatus.NOISE])
+        self.assertTrue(
+            any("Repetitive token sequences" in finding for finding in result.findings)
+        )
     
     def test_validate_all_facts(self):
         """Test validating all facts in registry"""
@@ -159,6 +177,41 @@ class TestValidationService(unittest.TestCase):
         self.assertEqual(summary['total_validated'], 0)
         self.assertEqual(summary['coherent'], 0)
         self.assertEqual(summary['average_confidence'], 0.0)
+    
+    def test_get_validation_summary_counts(self):
+        """Test validation summary counts and averages"""
+        self.validation_service.validation_results = {
+            "fact_1": ValidationResult(
+                fact_id="fact_1",
+                status=ValidationStatus.COHERENT,
+                confidence=0.9,
+                findings=[],
+                metadata={}
+            ),
+            "fact_2": ValidationResult(
+                fact_id="fact_2",
+                status=ValidationStatus.SUSPICIOUS,
+                confidence=0.5,
+                findings=["Tag coherence is low"],
+                metadata={}
+            ),
+            "fact_3": ValidationResult(
+                fact_id="fact_3",
+                status=ValidationStatus.NOISE,
+                confidence=0.2,
+                findings=["Statement too short"],
+                metadata={}
+            )
+        }
+        
+        summary = self.validation_service.get_validation_summary()
+        
+        self.assertEqual(summary['total_validated'], 3)
+        self.assertEqual(summary['coherent'], 1)
+        self.assertEqual(summary['suspicious'], 1)
+        self.assertEqual(summary['noise'], 1)
+        self.assertAlmostEqual(summary['average_confidence'], 0.533, places=3)
+        self.assertAlmostEqual(summary['coherence_rate'], 33.33, places=2)
     
     def test_validation_status_enum(self):
         """Test ValidationStatus enum values"""

@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Dict, List, Callable, Optional, Any
 from datetime import datetime
 from src.core.facts_registry import FactsRegistry
+from src.utils.helpers import format_report
 
 
 class TestStatus(Enum):
@@ -155,14 +156,20 @@ class TestService:
             }
         
         total = len(self.test_results)
-        passed = sum(1 for r in self.test_results.values() 
-                    if r.status == TestStatus.PASSED)
-        failed = sum(1 for r in self.test_results.values() 
-                    if r.status == TestStatus.FAILED)
-        skipped = sum(1 for r in self.test_results.values() 
-                     if r.status == TestStatus.SKIPPED)
-        error = sum(1 for r in self.test_results.values() 
-                   if r.status == TestStatus.ERROR)
+        passed = 0
+        failed = 0
+        skipped = 0
+        error = 0
+        
+        for result in self.test_results.values():
+            if result.status == TestStatus.PASSED:
+                passed += 1
+            elif result.status == TestStatus.FAILED:
+                failed += 1
+            elif result.status == TestStatus.SKIPPED:
+                skipped += 1
+            elif result.status == TestStatus.ERROR:
+                error += 1
         
         success_rate = (passed / total * 100) if total > 0 else 0.0
         
@@ -174,6 +181,33 @@ class TestService:
             'error': error,
             'success_rate': round(success_rate, 2)
         }
+
+    def get_code_mistakes_report(self) -> str:
+        """
+        Generate a report on failed or errored tests (code mistakes).
+
+        Returns:
+            Formatted report string
+        """
+        mistake_details: Dict[str, Dict[str, Any]] = {}
+        for result in self.test_results.values():
+            if result.status in {TestStatus.FAILED, TestStatus.ERROR}:
+                mistake_details[result.test_id] = {
+                    'status': result.status.value,
+                    'message': result.message,
+                    'duration': result.duration,
+                    'timestamp': result.timestamp.isoformat()
+                }
+
+        report_data: Dict[str, Any] = {
+            'total_tests': len(self.test_results),
+            'mistake_count': len(mistake_details),
+            'mistakes': mistake_details
+        }
+        if not mistake_details:
+            report_data['notes'] = 'No code mistakes detected.'
+
+        return format_report(report_data, title="Code Mistakes Report")
     
     def verify_fact_coherence(self) -> bool:
         """

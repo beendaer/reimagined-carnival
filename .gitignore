@@ -2,6 +2,42 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/*
+# Allow tracked category config under lib/data-ingestion
+!lib/data-ingestion/
+!lib/data-ingestion/**
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
 *.tar.gz
 *.zip

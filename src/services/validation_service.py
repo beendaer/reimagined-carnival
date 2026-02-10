@@ -7,6 +7,10 @@ from typing import Dict, List, Any, Callable, Optional
 from datetime import datetime
 from src.models.fact import Fact
 from src.core.facts_registry import FactsRegistry
+from src.utils.helpers import analyze_repetition_noise
+
+# Maximum repeated token sequences allowed before flagging as noise.
+REPETITION_NOISE_THRESHOLD = 2
 
 
 class ValidationStatus(Enum):
@@ -95,6 +99,7 @@ class ValidationService:
             self._check_statement_length,
             self._check_category_validity,
             self._check_tag_coherence,
+            self._check_repetition_noise,
         ]
     
     def investigate_fact(self, fact: Fact) -> Dict[str, Any]:
@@ -259,14 +264,21 @@ class ValidationService:
             }
         
         total = len(self.validation_results)
-        coherent = sum(1 for r in self.validation_results.values() 
-                      if r.status == ValidationStatus.COHERENT)
-        suspicious = sum(1 for r in self.validation_results.values() 
-                        if r.status == ValidationStatus.SUSPICIOUS)
-        noise = sum(1 for r in self.validation_results.values() 
-                   if r.status == ValidationStatus.NOISE)
+        coherent = 0
+        suspicious = 0
+        noise = 0
+        total_confidence = 0.0
         
-        avg_confidence = sum(r.confidence for r in self.validation_results.values()) / total
+        for result in self.validation_results.values():
+            if result.status == ValidationStatus.COHERENT:
+                coherent += 1
+            elif result.status == ValidationStatus.SUSPICIOUS:
+                suspicious += 1
+            elif result.status == ValidationStatus.NOISE:
+                noise += 1
+            total_confidence += result.confidence
+        
+        avg_confidence = total_confidence / total
         coherence_rate = (coherent / total * 100) if total > 0 else 0.0
         
         return {
@@ -331,6 +343,26 @@ class ValidationService:
             'passed': passed,
             'message': "No tags present - affects discoverability" if not passed else "",
             'penalty': 0.15 if not passed else 0.0
+        }
+
+    def _check_repetition_noise(self, fact: Fact) -> Dict[str, Any]:
+        """
+        Validation rule: Check for repeated token sequences
+
+        Args:
+            fact: The fact to check
+
+        Returns:
+            Dictionary with validation result
+        """
+        repetition_analysis = analyze_repetition_noise(fact.statement)
+        repetition_count = repetition_analysis["repetition_count"]
+        passed = repetition_count < REPETITION_NOISE_THRESHOLD
+
+        return {
+            'passed': passed,
+            'message': "Repetitive token sequences suggest chaotic input" if not passed else "",
+            'penalty': 0.4 if not passed else 0.0
         }
     
     def _analyze_tag_coherence(self, fact: Fact) -> float:

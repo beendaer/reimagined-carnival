@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Haier HWF75AW3",
+    "price": 454.0,
+    "reliability": 0.94,
+    "performance": 0.90,
+    "efficiency": 0.90,
+    "failure_rate": 0.03,
+    "repair_cost": 350,
+    "energy_cost": 45
+  },
+  {
+    "name": "Westinghouse WWF7524N3WA",
+    "price": 480.0,
+    "reliability": 0.85,
+    "performance": 0.88,
+    "efficiency": 0.80,
+    "failure_rate": 0.05,
+    "repair_cost": 300,
+    "energy_cost": 55
+  },
+  {
+    "name": "Westinghouse WWF7524N3WA (Factory Seconds)",
+    "price": 390.0,
+    "reliability": 0.82,
+    "performance": 0.85,
+    "efficiency": 0.70,
+    "failure_rate": 0.08,
+    "repair_cost": 300,
+    "energy_cost": 65
+  }
+]
