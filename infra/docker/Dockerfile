@@ -1,9 +1,10 @@
-FROM node:20-alpine
+FROM python:3.12-alpine
 WORKDIR /app
 RUN addgroup -g 1001 app && adduser -u 1001 -G app -s /bin/sh -D app
+RUN apk add --no-cache wget
 COPY . .
-RUN npm ci --only=production 2>/dev/null || true
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
 USER app
 EXPOSE 3000
 HEALTHCHECK --interval=30s CMD wget -q --spider http://localhost:3000/health || exit 1
-CMD ["node","index.js"]
+CMD ["python", "app.py"]
