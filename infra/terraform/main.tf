@@ -21,7 +21,6 @@ variable "project" {
 
 resource "local_file" "environment_info" {
   content  = "Project: ${var.project}\nEnvironment: ${var.environment}\n"
-  content = "Project: ${var.project}\nEnvironment: ${var.environment}\n"
   filename = "${path.module}/env_${var.environment}.txt"
 }
 
