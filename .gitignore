@@ -12,3 +12,22 @@ build/
 .terraform/
 *.tfstate
 *.tfstate.backup
+Users/
+.ssh_tmp/
+*.rtf
+*.png
+*.pdf
+BBFB_IMPLEMENTATION_COMPLETE*
+PRODUCT_DATA_EXTRACTION_SUMMARY*
+system_status_report*
+docs_final_commit*
+docs_missed_cases*
+docs_program_architecture*
+docs_proof_of_working*
+docs_system_status*
+docs_value-typology*
+pages_detect_Version*
+workspace chase*
+demo_deception copy*
+**/DECEPTION_PATTERNS copy*
+**/test_deception_detector copy*
