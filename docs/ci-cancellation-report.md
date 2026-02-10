@@ -11,7 +11,7 @@
   - `tests/unit/test_deception_detector.py:376:46: E999 SyntaxError: '(' was never closed`
 - The offending file contains multiple duplicated/overlapping `detect_facade_of_competence` definitions and stray lines, leaving the module unparsable.
 
-## Why this is currently infixable
+## Why this is currently unfixable automatically
 - The CI failure is syntactic, not environmental; the module is structurally corrupted (duplicated signatures and partial docstrings). Automated patching would require choosing a correct function signature and removing conflicting blocks, which is ambiguous without product requirements.
 - The follow-up Copilot agent run (`21881109831`) was externally cancelled before any remediation steps or tests could run, so no automated fix was produced.
 
