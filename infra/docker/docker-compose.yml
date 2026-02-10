@@ -4,5 +4,5 @@ services:
     build:
       context: ../../
       dockerfile: infra/docker/Dockerfile
-    ports: ["3000:3000"]
+    ports: ["8000:8000"]
     restart: unless-stopped
