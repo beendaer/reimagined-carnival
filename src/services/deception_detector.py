@@ -144,6 +144,9 @@ MEDIUM_CORRECTION_PATTERNS = [
     re.compile(r'\bdoes not exist\b'),
     re.compile(r'\bdoesn.?t exist\b'),
     re.compile(r'\bnot found\b'),
+    re.compile(r'\bxml parsing error\b'),
+    re.compile(r'\bparsererror\b'),
+    re.compile(r'\bnot\s+well-formed\b'),
     re.compile(r'\bactually,?\s+\w+'),
     re.compile(r'\bin fact,?\s+'),
 ]
@@ -397,6 +400,8 @@ def detect_facade_of_competence(
     apology_hits: List[str] = []
     completion_hits: List[str] = []
     polite_completion_flag = False
+    strong_completion_hit = False
+    text_probability = 0.0
 
     if analysis_text:
         text_lower = analysis_text.lower()
@@ -415,7 +420,6 @@ def detect_facade_of_competence(
                 apology_hits.append(match.group())
 
         # Check for completion patterns (including strong completion signals)
-        strong_completion_hit = False
         for pattern in FACADE_COMPLETION_TEXT_PATTERNS:
             match = pattern.search(text_lower)
             if match:
@@ -431,7 +435,6 @@ def detect_facade_of_competence(
         text_signals.extend(politeness_hits + apology_hits + completion_hits)
 
         # Calculate text probability based on signal combinations
-        text_probability = 0.0
         if strong_completion_hit:
             text_probability = max(text_probability, TEXT_ESCALATED_PROBABILITY)
         elif completion_hits:
@@ -467,6 +470,8 @@ def detect_facade_of_competence(
             'perfect_metrics_count': len(perfect_metrics),
             'text_signal_count': text_signal_count,
             'text_pattern_count': text_pattern_count,
+            'textual_signals_count': text_signal_count,  # alias for test compatibility
+            'text_layer_probability': text_probability,
             'layered_probe_flag': probability >= FACADE_LAYERED_THRESHOLD,
             'has_external_validation': external_validation is not None,
             'metrics': metrics or {},
@@ -785,13 +790,12 @@ def detect_all_patterns(text: str, context: Optional[dict] = None) -> List[Decep
     # Unverified claims detection
     results.append(detect_unverified_claims(text))
     
-    # Facade detection (if metrics provided)
-    if context and 'metrics' in context:
-        results.append(detect_facade_of_competence(
-            context['metrics'],
-            context.get('external_validation'),
-            text
-        ))
+    # Facade detection (always run, can use metrics and/or text)
+    results.append(detect_facade_of_competence(
+        context.get('metrics'),
+        context.get('external_validation'),
+        text
+    ))
     
     # Apology trap (if previous text provided)
     if 'previous_text' in context:
