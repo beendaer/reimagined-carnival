@@ -8,6 +8,10 @@ from datetime import datetime
 from src.models.fact import Fact
 from src.core.facts_registry import FactsRegistry
 from src.utils.helpers import analyze_repetition_noise
+from src.services.deception_detector import (
+    detect_user_correction,
+    detect_unverified_claims
+)
 
 # Maximum repeated token sequences allowed before flagging as noise.
 REPETITION_NOISE_THRESHOLD = 2
@@ -184,12 +188,6 @@ class ValidationService:
         if fact.metadata.get('external_claim'):
             findings.append("External claims require verifiable evidence")
             confidence -= 0.1
-        
-        # Add deception detection
-        from src.services.deception_detector import (
-            detect_user_correction,
-            detect_unverified_claims
-        )
         
         # Detect user corrections in the statement
         deception_result = detect_user_correction(fact.statement)
