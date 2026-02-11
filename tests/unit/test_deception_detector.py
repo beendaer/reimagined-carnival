@@ -375,6 +375,12 @@ class TestFacadeDetection(unittest.TestCase):
         response_text = "Complete, thank you. I apologize, but the deployment is live now."
         result = detect_facade_of_competence(
             metrics=None,
+            external_validation=None,
+            response_text=response_text
+        )
+        self.assertTrue(result.detected)
+        self.assertGreaterEqual(result.probability, 0.7)
+    
     def test_facade_politeness_mask_claim(self):
         """Detect facade when polite apology masks completion claim"""
         response_text = "I apologize for the confusion, but the artifact is produced and deployed now. Thank you!"
