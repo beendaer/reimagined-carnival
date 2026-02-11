@@ -1,10 +1,50 @@
 version: 2
 updates:
+  # GitHub Actions updates
   - package-ecosystem: github-actions
-    directory: /
+    directory: /  
     schedule:
       interval: weekly
+    open-pull-requests-limit: 10
+    reviewers:
+      - beendaer
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Python dependencies
   - package-ecosystem: pip
-    directory: /
+    directory: /  
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    reviewers:
+      - beendaer
+    labels:
+      - dependencies
+      - python
+    versioning-strategy: increase
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    allow:
+      - dependency-type: "all"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker
+  - package-ecosystem: docker
+    directory: /  
     schedule:
       interval: weekly
+    labels:
+      - dependencies
+      - docker
