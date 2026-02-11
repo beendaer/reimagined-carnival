@@ -360,10 +360,19 @@ curl -X POST http://localhost:8000/validate \
 
 ## Documentation
 
+### Project Status & Operations
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)**: Comprehensive project status, features, architecture, and deployment info
+- **[MEMORY_UPDATE_GUIDE.md](MEMORY_UPDATE_GUIDE.md)**: Session recap and memory update workflow guide
+
+### Technical Documentation
 - **[Architecture Guide](docs/ARCHITECTURE.md)**: Detailed system architecture
 - **[User Guide](docs/USER_GUIDE.md)**: Comprehensive usage instructions
 - **[Deception Patterns Guide](docs/DECEPTION_PATTERNS.md)**: Complete deception detection documentation
 - **[Third-Party Validation Guide](docs/THIRD_PARTY_VALIDATION.md)**: Documentation structure for validation
+
+### Incident Reports
+- **[CHAOS_ANALYSIS.md](CHAOS_ANALYSIS.md)**: Analysis of Feb 2026 code bloat incident
+- **[RECOVERY_PLAN.md](RECOVERY_PLAN.md)**: Recovery plan from code cascade
 
 ## Design Patterns
 
