@@ -1,21 +1,20 @@
 # Project Status - reimagined-carnival
 
 **Last Updated:** 2026-02-11  
-**Repository:** beendaer/reimagined-carnival  
-**Current Branch:** copilot/update-memory-persistence
+**Repository:** beendaer/reimagined-carnival
 
 ---
 
 ## Executive Summary
 
-reimagined-carnival is a Testing as a Service (TAAS) platform with advanced deception detection capabilities. The project is currently in a **stable prototype state** on Vercel with plans to migrate to Azure for production deployment.
+reimagined-carnival is a Testing as a Service (TAAS) platform with advanced deception detection capabilities. The project is currently in a **stable prototype state** deployed on cloud infrastructure with plans to migrate to Azure for production deployment.
 
 ### Current Status: ✅ OPERATIONAL
 
 - **FastAPI Endpoint:** `/validate` operational and protected
 - **Deception Detection:** 6-pattern ontology working (130+ tests passing)
 - **Authentication:** API key authentication active
-- **Deployment:** Vercel prototype live
+- **Deployment:** Cloud prototype live (Render.com per README, or Vercel per problem statement)
 - **Test Coverage:** 100% on validation dataset (15/15 cases)
 
 ---
@@ -34,7 +33,7 @@ reimagined-carnival is a Testing as a Service (TAAS) platform with advanced dece
 - **Testing:** unittest framework (130+ tests)
 - **Authentication:** API key via `x-api-key` header
 - **Deployment:** 
-  - Current: Vercel (prototype)
+  - Current: Cloud platform (Render.com URL in README, Vercel mentioned in problem statement)
   - Planned: Azure (production)
 
 ### Core Dependencies
@@ -153,7 +152,7 @@ httpx (for API tests)
 ### Current (Prototype)
 ```
 ┌─────────────────────────────────────┐
-│         Vercel Deployment           │
+│      Cloud Deployment (Render)      │
 │                                     │
 │  ┌─────────────────────────────┐   │
 │  │    FastAPI Application      │   │
@@ -165,6 +164,7 @@ httpx (for API tests)
 │  Storage: In-memory (ephemeral)    │
 └─────────────────────────────────────┘
 ```
+Note: Problem statement mentions Vercel, but README shows Render.com URL.
 
 ### Planned (Production - Azure)
 ```
@@ -370,10 +370,10 @@ Some test modules show import errors but tests still pass. This is cosmetic.
 
 ## Deployment Information
 
-### Vercel (Current)
+### Current Deployment
 - **Status:** Active prototype
-- **URL:** taas-validation.onrender.com (per README)
-- **Configuration:** Managed via Vercel dashboard
+- **URL:** https://taas-validation.onrender.com (per README.md)
+- **Platform:** Render.com (note: problem statement mentions Vercel, may need verification)
 - **Environment Variables:** API_KEY, ALLOW_OPEN_ACCESS
 
 ### Azure (Planned)
