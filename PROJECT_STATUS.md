@@ -7,14 +7,16 @@
 
 ## Executive Summary
 
-reimagined-carnival is a Testing as a Service (TAAS) platform with advanced deception detection capabilities. The project is currently in a **stable prototype state** deployed on cloud infrastructure with plans to migrate to Azure for production deployment.
+reimagined-carnival is a Testing as a Service (TAAS) platform with advanced deception detection capabilities. The project is currently in a **stable prototype state** deployed on Render.com (free tier) with plans to migrate to Azure for production deployment.
+
+**Note:** The problem statement mentioned "Vercel deployment active" but the repository contains `render.yaml` and README.md shows `taas-validation.onrender.com`, confirming the actual platform is Render.com.
 
 ### Current Status: ✅ OPERATIONAL
 
 - **FastAPI Endpoint:** `/validate` operational and protected
 - **Deception Detection:** 6-pattern ontology working (130+ tests passing)
 - **Authentication:** API key authentication active
-- **Deployment:** Cloud prototype live (Render.com per README, or Vercel per problem statement)
+- **Deployment:** Render.com prototype live (https://taas-validation.onrender.com)
 - **Test Coverage:** 100% on validation dataset (15/15 cases)
 
 ---
@@ -33,7 +35,7 @@ reimagined-carnival is a Testing as a Service (TAAS) platform with advanced dece
 - **Testing:** unittest framework (130+ tests)
 - **Authentication:** API key via `x-api-key` header
 - **Deployment:** 
-  - Current: Cloud platform (Render.com URL in README, Vercel mentioned in problem statement)
+  - Current: Render.com (free tier, Docker-based)
   - Planned: Azure (production)
 
 ### Core Dependencies
@@ -116,8 +118,8 @@ httpx (for API tests)
 - **Planned Solution:** Custom analytics or Azure metrics
 
 #### 5. Azure Migration
-- **Current State:** Vercel prototype only
-- **Impact:** Cannot scale for production
+- **Current State:** Render.com prototype only
+- **Impact:** Cannot scale for production workloads
 - **Priority:** HIGH (future platform)
 - **Required:** Configuration for Azure App Service, PostgreSQL, Redis, App Insights
 
@@ -152,7 +154,7 @@ httpx (for API tests)
 ### Current (Prototype)
 ```
 ┌─────────────────────────────────────┐
-│      Cloud Deployment (Render)      │
+│    Render.com Deployment (Free)     │
 │                                     │
 │  ┌─────────────────────────────┐   │
 │  │    FastAPI Application      │   │
@@ -162,9 +164,9 @@ httpx (for API tests)
 │  └─────────────────────────────┘   │
 │                                     │
 │  Storage: In-memory (ephemeral)    │
+│  Config: render.yaml, Dockerfile   │
 └─────────────────────────────────────┘
 ```
-Note: Problem statement mentions Vercel, but README shows Render.com URL.
 
 ### Planned (Production - Azure)
 ```
@@ -370,11 +372,12 @@ Some test modules show import errors but tests still pass. This is cosmetic.
 
 ## Deployment Information
 
-### Current Deployment
+### Render.com (Current)
 - **Status:** Active prototype
-- **URL:** https://taas-validation.onrender.com (per README.md)
-- **Platform:** Render.com (note: problem statement mentions Vercel, may need verification)
+- **URL:** https://taas-validation.onrender.com
+- **Configuration:** render.yaml (Docker-based, free tier)
 - **Environment Variables:** API_KEY, ALLOW_OPEN_ACCESS
+- **Region:** Oregon
 
 ### Azure (Planned)
 **Required Configuration:**
@@ -399,8 +402,8 @@ Some test modules show import errors but tests still pass. This is cosmetic.
 - No hardcoded secrets
 
 ### External Dependencies
-- Vercel deployment platform
-- Azure resources (future)
+- Render.com deployment platform (current)
+- Azure resources (planned for production)
 - Python package registry (PyPI)
 
 ---
@@ -496,7 +499,7 @@ ALLOW_OPEN_ACCESS=true uvicorn src.api:app --reload --port 8000  # Open mode
 
 ### Deploy
 ```bash
-# Vercel: Managed via dashboard
+# Render.com: Managed via dashboard and render.yaml
 # Azure: TBD when migration planned
 ```
 
