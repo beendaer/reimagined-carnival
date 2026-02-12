@@ -1,0 +1,141 @@
+---
+# Azure Pipelines CI/CD Configuration
+# Testing as a Service (TAAS) Platform - reimagined-carnival
+#
+# This pipeline mirrors the GitHub Actions CI workflow for Azure DevOps
+#
+# Pipeline Stages:
+#   1. Lint - Code quality checks (flake8, shellcheck)
+#   2. Security - Security scanning with Trivy
+#   3. Test - Unit tests on Python 3.11 and 3.12
+#   4. Build - Docker image build validation
+#
+# Local Testing Commands:
+#   - Tests: python -m unittest discover tests/ -v
+#   - Linting: flake8 src/ tests/ --max-line-length=120
+#   - Shellcheck: find scripts -name "*.sh" -exec shellcheck {} +
+#   - Docker: docker build -t reimagined-carnival:local .
+
+trigger:
+  branches:
+    include:
+      - main
+      - tooling/*
+      - feature/*
+      - fix/*
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.12'
+
+stages:
+  - stage: Lint
+    displayName: 'Code Quality & Linting'
+    jobs:
+      - job: Lint
+        displayName: 'Run Linters'
+        steps:
+          - task: UsePythonVersion@0
+            displayName: 'Set up Python $(pythonVersion)'
+            inputs:
+              versionSpec: '$(pythonVersion)'
+              addToPath: true
+
+          - script: |
+              pip install shellcheck-py flake8 yamllint
+            displayName: 'Install linters'
+
+          - script: |
+              find scripts -name "*.sh" -exec shellcheck {} + \
+                2>/dev/null || true
+            displayName: 'Run shellcheck on scripts'
+            continueOnError: true
+
+          - script: |
+              flake8 src/ tests/ --max-line-length=120 \
+                --extend-ignore=E501,W503 || true
+            displayName: 'Run flake8 on Python code'
+            continueOnError: true
+
+  - stage: Security
+    displayName: 'Security Scanning'
+    dependsOn: Lint
+    jobs:
+      - job: SecurityScan
+        displayName: 'Trivy Security Scan'
+        steps:
+          - script: |
+              # Install Trivy
+              wget -qO - \
+                https://aquasecurity.github.io/trivy-repo/deb/public.key \
+                | sudo apt-key add -
+              echo "deb https://aquasecurity.github.io/trivy-repo/deb \
+                $(lsb_release -sc) main" | \
+                sudo tee -a /etc/apt/sources.list.d/trivy.list
+              sudo apt-get update
+              sudo apt-get install -y trivy
+            displayName: 'Install Trivy'
+
+          - script: |
+              trivy fs . --exit-code 0
+            displayName: 'Run Trivy security scan'
+
+  - stage: Test
+    displayName: 'Testing'
+    dependsOn: Lint
+    jobs:
+      - job: Test
+        displayName: 'Run Unit Tests'
+        strategy:
+          matrix:
+            Python311:
+              pythonVersion: '3.11'
+            Python312:
+              pythonVersion: '3.12'
+        steps:
+          - task: UsePythonVersion@0
+            displayName: 'Set up Python $(pythonVersion)'
+            inputs:
+              versionSpec: '$(pythonVersion)'
+              addToPath: true
+
+          - script: |
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+
+          - script: |
+              python -m unittest discover tests/ -v
+            displayName: 'Run unit tests'
+
+  - stage: Build
+    displayName: 'Build & Package'
+    dependsOn:
+      - Lint
+      - Security
+      - Test
+    jobs:
+      - job: DockerBuild
+        displayName: 'Build Docker Image'
+        steps:
+          - task: UsePythonVersion@0
+            displayName: 'Set up Python $(pythonVersion)'
+            inputs:
+              versionSpec: '$(pythonVersion)'
+              addToPath: true
+
+          - task: Docker@2
+            displayName: 'Build Docker image'
+            inputs:
+              command: 'build'
+              repository: 'reimagined-carnival'
+              tags: |
+                test
+                $(Build.BuildId)
+              Dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
