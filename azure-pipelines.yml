@@ -53,14 +53,13 @@ stages:
             displayName: 'Install linters'
 
           - script: |
-              find scripts -name "*.sh" -exec shellcheck {} + \
-                2>/dev/null || true
+              find scripts -name "*.sh" -exec shellcheck {} +
             displayName: 'Run shellcheck on scripts'
             continueOnError: true
 
           - script: |
               flake8 src/ tests/ --max-line-length=120 \
-                --extend-ignore=E501,W503 || true
+                --extend-ignore=E501,W503
             displayName: 'Run flake8 on Python code'
             continueOnError: true
 

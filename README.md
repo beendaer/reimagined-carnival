@@ -1,7 +1,6 @@
 # reimagined-carnival
 
 [![CI Pipeline](https://github.com/beendaer/reimagined-carnival/actions/workflows/ci.yml/badge.svg)](https://github.com/beendaer/reimagined-carnival/actions/workflows/ci.yml)
-[![Azure DevOps Build Status](https://dev.azure.com/justobeeme/justobeeme/_apis/build/status/reimagined-carnival?branchName=main)](https://dev.azure.com/justobeeme/justobeeme/_build/latest?definitionId=&branchName=main)
 
 ## TAAS Monolith - Testing as a Service with Coherent Facts
 
@@ -460,6 +459,7 @@ Configured in `azure-pipelines.yml`:
 - Mirrors GitHub Actions workflow
 - Multi-stage pipeline: Lint → Security → Test → Build
 - See [Azure DevOps Setup Guide](docs/AZURE_DEVOPS_SETUP.md) for configuration
+- **Note:** Azure DevOps build badge can be added after pipeline setup (requires pipeline definition ID)
 
 **Local CI simulation:**
 ```bash

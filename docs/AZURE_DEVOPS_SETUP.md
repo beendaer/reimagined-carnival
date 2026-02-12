@@ -179,6 +179,35 @@ For sensitive configuration:
 
 ---
 
+## Step 7: Add Build Status Badge
+
+### 7.1 Get Badge Markdown
+1. Navigate to your pipeline in Azure DevOps
+2. Click on the pipeline name
+3. Click **"..."** (three dots menu) → **"Status badge"**
+4. Copy the badge URL or Markdown snippet
+5. Note your **pipeline definition ID** from the URL
+
+### 7.2 Add Badge to README
+Add the badge to your GitHub repository's README.md:
+
+```markdown
+[![Azure DevOps Build Status](https://dev.azure.com/justobeeme/justobeeme/_apis/build/status/reimagined-carnival?branchName=main)](https://dev.azure.com/justobeeme/justobeeme/_build/latest?definitionId=1&branchName=main)
+```
+
+**Replace:**
+- `justobeeme` (first occurrence): Your Azure DevOps organization name
+- `justobeeme` (second occurrence): Your project name
+- `definitionId=1`: Your actual pipeline definition ID
+- `branchName=main`: Your target branch
+
+### 7.3 Example Badge URL Structure
+```
+https://dev.azure.com/{organization}/{project}/_apis/build/status/{pipeline-name}?branchName={branch}
+```
+
+---
+
 ## Pipeline Structure
 
 ### Current Pipeline Stages
