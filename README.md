@@ -1,5 +1,7 @@
 # reimagined-carnival
 
+[![CI Pipeline](https://github.com/beendaer/reimagined-carnival/actions/workflows/ci.yml/badge.svg)](https://github.com/beendaer/reimagined-carnival/actions/workflows/ci.yml)
+
 ## TAAS Monolith - Testing as a Service with Coherent Facts
 
 reimagined-carnival is a monolithic architecture implementing Testing as a Service (TAAS) with a coherent facts registry. This project demonstrates industry best practices for maintaining determined facts within a unified system while providing comprehensive testing capabilities.
@@ -373,6 +375,7 @@ curl -X POST http://localhost:8000/validate \
 
 ### Deployment & Infrastructure
 - **[Azure Deployment Guide](docs/AZURE_DEPLOYMENT.md)**: Complete Azure deployment guide with CLI commands
+- **[Azure DevOps Setup Guide](docs/AZURE_DEVOPS_SETUP.md)**: CI/CD pipeline setup for Azure DevOps
 - **[Database Preparation](docs/DATABASE_PREPARATION.md)**: PostgreSQL migration preparation and strategy
 
 ### Incident Reports
@@ -442,12 +445,34 @@ docker-compose -f infra/docker/docker-compose.yml up
 ```
 
 ### CI/CD Pipeline
+
+**The project supports dual CI/CD platforms:**
+
+#### GitHub Actions
+Configured in `.github/workflows/ci.yml`:
+- Runs on push to `main`, `tooling/*`, `feature/*` branches
+- Python 3.11 and 3.12 matrix testing
+- Flake8 linting, Trivy security scanning, Docker builds
+
+#### Azure Pipelines
+Configured in `azure-pipelines.yml`:
+- Mirrors GitHub Actions workflow
+- Multi-stage pipeline: Lint → Security → Test → Build
+- See [Azure DevOps Setup Guide](docs/AZURE_DEVOPS_SETUP.md) for configuration
+- **Note:** Azure DevOps build badge can be added after pipeline setup (requires pipeline definition ID)
+
+**Local CI simulation:**
 ```bash
-# CI runs automatically on push to main, tooling/*, feature/* branches
-# Local CI simulation:
+# Run tests (like CI)
 python -m unittest discover tests/ -v
+
+# Run linting
 flake8 src/ tests/ --max-line-length=120
+
+# Run shellcheck
 find scripts -name "*.sh" -exec shellcheck {} +
+
+# Build Docker image
 docker build -t reimagined-carnival:test .
 ```
 
