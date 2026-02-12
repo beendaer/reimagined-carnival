@@ -238,6 +238,37 @@ class TestAPIEndpoints(unittest.TestCase):
             self.assertEqual(len(log.output), 1)
             self.assertEqual(len(log_entries), 1)
 
+    @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"}, clear=True)
+    def test_validate_endpoint_rate_limited(self):
+        """Requests exceeding the per-minute limit should be rejected."""
+        api.set_validate_rate_limit("2/minute")
+        api.limiter.reset()
+        headers = {"x-api-key": self.test_api_key}
+        try:
+            first = self.client.post(
+                "/validate",
+                json={"input_text": "Test", "context": "testing"},
+                headers=headers
+            )
+            second = self.client.post(
+                "/validate",
+                json={"input_text": "Another", "context": "testing"},
+                headers=headers
+            )
+            self.assertEqual(first.status_code, 200)
+            self.assertEqual(second.status_code, 200)
+
+            third = self.client.post(
+                "/validate",
+                json={"input_text": "Third", "context": "testing"},
+                headers=headers
+            )
+            self.assertEqual(third.status_code, 429)
+            self.assertIn("rate limit", third.text.lower())
+        finally:
+            api.set_validate_rate_limit(api.DEFAULT_VALIDATE_RATE_LIMIT)
+            api.limiter.reset()
+
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
     def test_process_products_endpoint(self):
         """Test processing RawProductData payloads."""

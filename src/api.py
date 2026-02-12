@@ -9,9 +9,11 @@ import os
 import threading
 from html import escape
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body
+from fastapi import FastAPI, HTTPException, Security, Depends, Form, Body, Request
 from fastapi.security import APIKeyHeader
 from fastapi.responses import HTMLResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel, Field, field_validator
 from src.main import validate_input
 from src.services.product_ingestion import evaluate_products, SCORE_FIELDS
@@ -30,6 +32,20 @@ _OPEN_ACCESS_WARNING_EVENT = threading.Event()
 OPEN_ACCESS_WARNING_MESSAGE = (
     "API_KEY is not configured; authentication is disabled for API requests."
 )
+DEFAULT_VALIDATE_RATE_LIMIT = os.getenv("VALIDATE_RATE_LIMIT", "60/minute")
+
+
+def rate_limit_key(request: Request) -> str:
+    """Build a stable key for rate limiting using client host and API key header."""
+    client_host = request.client.host if request.client else "anonymous"
+    api_key_value = request.headers.get(API_KEY_NAME, "anonymous")
+    return f"{client_host}:{api_key_value}"
+
+
+limiter = Limiter(key_func=rate_limit_key)
+app.state.limiter = limiter
+app.state.validate_rate_limit = DEFAULT_VALIDATE_RATE_LIMIT
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 def is_open_access_enabled() -> bool:
@@ -40,6 +56,17 @@ def is_open_access_enabled() -> bool:
 def reset_open_access_warning() -> None:
     """Reset the open access warning state (testing utility)."""
     _OPEN_ACCESS_WARNING_EVENT.clear()
+
+
+def set_validate_rate_limit(limit: str) -> None:
+    """Update the rate limit applied to /validate requests."""
+    app.state.validate_rate_limit = limit
+
+
+def get_validate_rate_limit(request: Optional[Request] = None) -> str:
+    """Return the active rate limit string for validation endpoint."""
+    state = request.app.state if request is not None else app.state  # type: ignore[attr-defined]
+    return str(getattr(state, "validate_rate_limit", DEFAULT_VALIDATE_RATE_LIMIT))
 
 
 class RawProductData(BaseModel):
@@ -247,7 +274,8 @@ def gui_submit(
 
 
 @app.post("/validate", dependencies=[Depends(verify_api_key)])
-def validate_text(request: dict):
+@limiter.limit(get_validate_rate_limit)
+def validate_text(request: Request, payload: dict):
     """
     Validate text for coherence and quality
     
@@ -267,8 +295,8 @@ def validate_text(request: dict):
     """
     try:
         # Empty strings are allowed and handled downstream as noise; missing values are not.
-        text = ensure_string_input(request.get("input_text"))
-        context = request.get("context")
+        text = ensure_string_input(payload.get("input_text"))
+        context = payload.get("context")
         result = validate_input(text, context=context)
         return {"validation": result}
     except ValueError as e:
