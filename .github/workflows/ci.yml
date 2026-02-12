@@ -13,6 +13,10 @@
 #   - Docker build validation
 #
 name: CI Pipeline
+
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, tooling/*, feature/*]

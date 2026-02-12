@@ -42,8 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - Updated python-multipart to 0.0.22+ to fix:
-  - Arbitrary File Write via Non-Default Configuration (< 0.0.22)
-  - Denial of Service via deformation multipart/form-data boundary (< 0.0.18)
+  - Arbitrary File Write via Non-Default Configuration (versions < 0.0.22)
+  - Denial of Service via deformation multipart/form-data boundary (versions < 0.0.18)
 
 ## [0.1.0] - 2026-02-11
 
