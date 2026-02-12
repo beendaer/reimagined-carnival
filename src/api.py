@@ -121,7 +121,7 @@ def ensure_string_input(input_text: Any) -> str:
         # Provide a clear error when the field is missing entirely
         raise ValueError("input_text is required")
     if not isinstance(input_text, str):
-        raise ValueError("input_text must be a string")
+        raise ValueError("Input text must be a string")
     return input_text
 
 
