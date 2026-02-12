@@ -8,7 +8,7 @@ slowapi>=0.1.9,<0.2.0
 
 # HTTP Clients
 requests>=2.32.0,<3.0.0
-httpx>=0.27.0,<0.28.0
+httpx>=0.27.0,<0.29.0
 
 # Form Data (Security: Updated to 0.0.22+ for CVE fixes)
 python-multipart>=0.0.22,<0.1.0
