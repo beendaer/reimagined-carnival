@@ -215,7 +215,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         data = response.json()
         self.assertIn("detail", data)
-        self.assertEqual(data["detail"], "input_text must be a string")
+        self.assertEqual(data["detail"], "Input text must be a string")
         with patch.dict(os.environ, {"ALLOW_OPEN_ACCESS": "true"}, clear=True):
             with self.assertLogs(level="WARNING") as log:
                 response = self.client.post(
@@ -265,8 +265,8 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertAlmostEqual(data["results"][0]["bbfb_score"], 0.913, places=3)
 
     @patch.dict(os.environ, {"API_KEY": "test_api_key_12345"})
-    def test_validate_endpoint_rejects_non_string_input(self):
-        """Test validation endpoint rejects non-string input_text payloads."""
+    def test_validate_endpoint_rejects_dict_input(self):
+        """Test validation endpoint rejects dict input_text payloads."""
         payload = {
             "input_text": {"file_system": {"manifest": None}},
             "context": "testing"

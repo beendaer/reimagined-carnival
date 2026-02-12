@@ -15,9 +15,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && github.event_name == 'push' && 'production') || 'staging' }}
     env:
       DEPLOY_ENV: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && github.event_name == 'push' && 'production') || 'staging' }}
-    environment: ${{ env.DEPLOY_ENV }}
     steps:
       - uses: actions/checkout@v6
       - run: bash scripts/deploy.sh ${{ env.DEPLOY_ENV }}
