@@ -363,12 +363,17 @@ curl -X POST http://localhost:8000/validate \
 ### Project Status & Operations
 - **[PROJECT_STATUS.md](PROJECT_STATUS.md)**: Comprehensive project status, features, architecture, and deployment info
 - **[MEMORY_UPDATE_GUIDE.md](MEMORY_UPDATE_GUIDE.md)**: Session recap and memory update workflow guide
+- **[CHANGELOG.md](CHANGELOG.md)**: Track all project changes and releases
 
 ### Technical Documentation
 - **[Architecture Guide](docs/ARCHITECTURE.md)**: Detailed system architecture
 - **[User Guide](docs/USER_GUIDE.md)**: Comprehensive usage instructions
 - **[Deception Patterns Guide](docs/DECEPTION_PATTERNS.md)**: Complete deception detection documentation
 - **[Third-Party Validation Guide](docs/THIRD_PARTY_VALIDATION.md)**: Documentation structure for validation
+
+### Deployment & Infrastructure
+- **[Azure Deployment Guide](docs/AZURE_DEPLOYMENT.md)**: Complete Azure deployment guide with CLI commands
+- **[Database Preparation](docs/DATABASE_PREPARATION.md)**: PostgreSQL migration preparation and strategy
 
 ### Incident Reports
 - **[CHAOS_ANALYSIS.md](CHAOS_ANALYSIS.md)**: Analysis of Feb 2026 code bloat incident
@@ -385,8 +390,71 @@ This project implements several industry-standard patterns:
 
 ## Requirements
 
-- Python 3.7+
-- External dependencies listed in requirements.txt (FastAPI, Uvicorn, Requests, httpx for API tests)
+- Python 3.11+ (currently supports 3.11 and 3.12)
+- Dependencies listed in requirements.txt with version pins for production stability
+- PostgreSQL driver included (prepared for future database integration)
+- Redis client included (prepared for future caching)
+
+### Key Dependencies
+- FastAPI >= 0.115.0
+- Uvicorn >= 0.32.0
+- Requests >= 2.32.0
+- httpx >= 0.27.0 (for API tests)
+- psycopg2-binary >= 2.9.9 (PostgreSQL support, not yet used)
+- redis >= 5.2.0 (caching support, not yet used)
+
+## Development & Operations
+
+### Local Development
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run local server with auto-reload
+uvicorn src.api:app --reload --port 8000
+
+# Run with open access (no API key required)
+ALLOW_OPEN_ACCESS=true uvicorn src.api:app --reload --port 8000
+
+# Run tests
+python -m unittest discover tests/ -v
+
+# Run specific test module
+python3 -m unittest tests.unit.test_deception_detector -v
+
+# Run linting
+flake8 src/ tests/ --max-line-length=120
+
+# Run shellcheck on scripts
+find scripts -name "*.sh" -exec shellcheck {} +
+```
+
+### Docker Operations
+```bash
+# Build Docker image
+docker build -t reimagined-carnival:local .
+
+# Run with Docker
+docker run -p 8000:8000 reimagined-carnival:local
+
+# Using docker-compose (development)
+docker-compose -f infra/docker/docker-compose.yml up
+```
+
+### CI/CD Pipeline
+```bash
+# CI runs automatically on push to main, tooling/*, feature/* branches
+# Local CI simulation:
+python -m unittest discover tests/ -v
+flake8 src/ tests/ --max-line-length=120
+find scripts -name "*.sh" -exec shellcheck {} +
+docker build -t reimagined-carnival:test .
+```
+
+### Deployment
+- **Current:** Render.com (free tier) - `https://taas-validation.onrender.com`
+- **Planned:** Azure App Service with PostgreSQL and Redis
+- See [Azure Deployment Guide](docs/AZURE_DEPLOYMENT.md) for migration steps
 
 ## Testing
 
