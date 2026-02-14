@@ -1,0 +1,9 @@
+model: gpt-4o
+edit-format: diff
+read: [ "src/logic/taas_engine.py", "README.md" ]
+commit-message-prefix: "TAAS_AUDIT: "
+rules:
+  - "No apologies."
+  - "No conversational filler."
+  - "Follow 00-99 Governance Hierarchy."
+  - "Only functional code or forensic audit results."
