@@ -48,9 +48,37 @@ All PRs listed below are currently **open** and in **draft** state:
 - **Description**: Received directive to stop all repo work
 - **Link**: https://github.com/beendaer/reimagined-carnival/pull/112
 
-## Manual Closure Instructions
+## Closure Instructions
 
-Since automated PR closure requires permissions not available to the Copilot agent, please close these PRs manually using one of the following methods:
+Since automated PR closure requires permissions not available to the Copilot agent, please close these PRs using one of the following methods:
+
+### Quick Start: Automated Scripts
+
+**Option A: Bash Script** (Recommended for Linux/macOS)
+
+```bash
+./scripts/close_unnecessary_prs.sh
+```
+
+**Option B: Python Script** (Cross-platform)
+
+```bash
+# Install requests library if needed
+pip install requests
+
+# Set your GitHub token
+export GITHUB_TOKEN="your_personal_access_token"
+
+# Run the script
+python scripts/close_unnecessary_prs.py
+```
+
+Both scripts will:
+- Close all 5 PRs with explanatory comments
+- Optionally delete the associated branches
+- Provide clear success/failure feedback
+
+### Manual Methods
 
 ### Option 1: Close via GitHub Web UI (Recommended)
 
