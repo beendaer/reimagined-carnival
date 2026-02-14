@@ -19,7 +19,7 @@ python-multipart>=0.0.22,<0.1.0
 psycopg2-binary>=2.9.9,<3.0.0
 
 # Caching (Redis prepared - not yet used)
-redis>=5.2.0,<6.0.0
+redis>=5.2.0,<8.0.0
 
 # Environment & Configuration
 python-dotenv>=1.0.0,<2.0.0
