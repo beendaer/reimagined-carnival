@@ -1,6 +1,6 @@
 # Production Dockerfile - Python 3.12-slim single-stage
 # Per PROJECT_STATUS.md recommendation: single-stage, Python 3.12-slim, port 8000
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
